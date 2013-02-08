@@ -21,22 +21,21 @@
 
 #include <boost/scoped_ptr.hpp>
 #include "music.h"
-#include "dolanI.h"
 
 
 namespace MumbleClient {
 class MumbleClientLib;
 class MumbleClient;
 }
-namespace Dolan {
+namespace Dolanik {
   //class Music;
-  class Dolan : public DolanI
+  class Dolan
   {
 
   public:
       Dolan();
       void init();
-      boost::shared_ptr< MusicI > getMusic();
+      boost::shared_ptr< Music > getMusic();
       virtual void run();
       virtual ~Dolan();
   private:

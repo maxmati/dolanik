@@ -28,15 +28,20 @@
 #include <mpg123.h>
 
 #include "../libmumbleclient/Client.hpp"
-#include "musicI.h"
 
-namespace Dolan{
+namespace Dolanik{
  
   
-  
-  class Music : public MusicI
+  class Music
   {
-    
+  public:
+	  
+	  struct Song{
+		  boost::filesystem::path path;
+		  std::string artist;
+		  std::string title;
+		  std::string album;
+	  };
 
   public:
     Music(MumbleClient::MumbleClient* mc);
@@ -49,7 +54,7 @@ namespace Dolan{
     virtual void clearQueue();
     virtual double getVolume();
     virtual void setVolume(double volume);
-    virtual Song getCurrentSong();
+    Song getCurrentSong();
     uint getCurrentSongLength();
     
     virtual void run();

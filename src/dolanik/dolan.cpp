@@ -29,7 +29,7 @@
 #include "dolan.h"
 
 
-namespace Dolan {
+namespace Dolanik {
 
 Dolan::Dolan()
     :mumbleClientLib(MumbleClient::MumbleClientLib::instance()),
@@ -62,7 +62,7 @@ void Dolan::run()
     mumbleClientLib->Run();
 }
 
-boost::shared_ptr< MusicI > Dolan::Dolan::getMusic()
+boost::shared_ptr< Music > Dolan::Dolan::getMusic()
 {
   return this->music;
 }

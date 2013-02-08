@@ -24,7 +24,7 @@
 #include "../libmumbleclient/PacketDataStream.hpp"
 #include "../misc.h"
 
-namespace Dolan {
+namespace Dolanik {
 
 Music::Music(MumbleClient::MumbleClient* _mc)
     :playback(false),
@@ -46,7 +46,7 @@ double Music::getVolume()
 {
   return volume;
 }
-MusicI::Song Music::getCurrentSong()
+Music::Song Music::getCurrentSong()
 {
   return currentSong;
 }

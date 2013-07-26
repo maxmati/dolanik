@@ -40,10 +40,18 @@ message (STATUS "Libraries: " ${CRYPT_LIBRARIES})
 message (STATUS "")
 
 # Celt
-pkg_check_modules(CELT REQUIRED celt>=0.7.0)
+pkg_check_modules(CELT REQUIRED celt>=0.11.0)
 message (STATUS "Celt found!")
 message (STATUS "Version: " ${CELT_VERSION})
 message (STATUS "Include dirs: " ${CELT_INCLUDEDIR})
+message (STATUS "")
+
+
+# Mpg123
+find_package (MPG123 REQUIRED)
+message (STATUS "MPG123 found!")
+message (STATUS "Include dirs: " ${MPG123_INCLUDE_DIR} )
+message (STATUS "Libraries: " ${MPG123_LIBRARIES})
 message (STATUS "")
 
 INCLUDE_DIRECTORIES(  ${Boost_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${CELT_INCLUDE_DIR} ${PROTOBUF_INCLUDE_DIR}  ${CRYPT_INCLUDE_DIR})
@@ -59,7 +67,7 @@ add_library(libmumbleclient ${LIBMUMBLE_BUILD_TYPE} ${LIBMUMBLECLIENT_SOURCES} $
 target_link_libraries(libmumbleclient ${LIBMUMBLECLIENT_LIBRARIES} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${PROTOBUF_LIBRARY} ${CRYPT_LIBRARIES})
 
 add_library(dolan ${dolan_SRC})
-target_link_libraries(dolan libmumbleclient mpg123)
+target_link_libraries(dolan libmumbleclient ${MPG123_LIBRARIES})
 
 #add_executable(dolanik main.cpp)
 

@@ -53,8 +53,11 @@ message (STATUS "MPG123 found!")
 message (STATUS "Include dirs: " ${MPG123_INCLUDE_DIR} )
 message (STATUS "Libraries: " ${MPG123_LIBRARIES})
 message (STATUS "")
+# ZeroC Ice
 
-INCLUDE_DIRECTORIES(  ${Boost_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${CELT_INCLUDE_DIR} ${PROTOBUF_INCLUDE_DIR}  ${CRYPT_INCLUDE_DIR})
+find_package (ZeroCIce REQUIRED)
+
+INCLUDE_DIRECTORIES(  src/ ${Boost_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${CELT_INCLUDE_DIR} ${PROTOBUF_INCLUDE_DIR}  ${CRYPT_INCLUDE_DIR})
 
 set(LIBMUMBLE_BUILD_TYPE STATIC)
 set(LIBMUMBLECLIENT_LIBRARIES dl pthread)
@@ -67,8 +70,8 @@ add_library(libmumbleclient ${LIBMUMBLE_BUILD_TYPE} ${LIBMUMBLECLIENT_SOURCES} $
 target_link_libraries(libmumbleclient ${LIBMUMBLECLIENT_LIBRARIES} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${PROTOBUF_LIBRARY} ${CRYPT_LIBRARIES})
 
 add_library(dolan ${dolan_SRC})
-target_link_libraries(dolan libmumbleclient ${MPG123_LIBRARIES})
+target_link_libraries(dolan libmumbleclient mpg123)
 
-#add_executable(dolanik main.cpp)
-
+add_executable(dolanik ${dolanik_SRC})
+target_link_libraries(dolanik dolan ${ZeroCIceCore_LIBRARY} )
 

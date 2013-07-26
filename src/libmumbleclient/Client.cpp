@@ -419,8 +419,8 @@ void MumbleClient::Connect(const Settings& s) {
     // Try to connect
 #if SSL
     boost::asio::ssl::context ctx(*io_service_, boost::asio::ssl::context::tlsv1);
-    ctx.use_certificate_file("./Cert", boost::asio::ssl::context_base::pem);
-    ctx.use_private_key_file("./Cert_bez", boost::asio::ssl::context_base::pem);
+    ctx.use_certificate_file("./Cert.pem", boost::asio::ssl::context_base::pem); //TODO
+    ctx.use_private_key_file("./Cert.pem", boost::asio::ssl::context_base::pem);
     tcp_socket_ = new boost::asio::ssl::stream<boost::asio::ip::tcp::socket>(*io_service_, ctx);
 #else
     tcp_socket_ = new boost::asio::ip::tcp::socket(*io_service_);

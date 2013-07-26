@@ -130,7 +130,7 @@ std::string Music::genPlaylistString()
   for(uint i = 0;i< queuedSongs.size() ;++i)
   {
     Song song = queuedSongs.at(i);
-    result += Anal::toStr(i+1) + ") " + song.title + " : " + song.artist + "<br />";
+    result += /*Anal::toStr(i+1) + */ ") " + song.title + " : " + song.artist + "<br />";//FIXME
     
   }
   return result;
@@ -159,7 +159,7 @@ void Music::onTxtMsg(const std::string& text)
         std::string msg = "Dolanik status: <br />";
         msg += "Current volume = " + strs.str() + "%<br />";
         if(playback)
-            msg += "I'm currently playing song : "+ currentSong.title + "(Length: "+ Anal::toStr(getCurrentSongLength()) +"s ) <br />";
+            msg += "I'm currently playing song : "+ currentSong.title + "(Length:" /*"+ Anal::toStr(getCurrentSongLength()) +" */ "s ) <br />"; //FIXME
         mc->SendTextMessage("music",msg);
     } else if(text == "playlist")
     {
@@ -202,7 +202,7 @@ void Music::statusComment()
     msg += "Current volume = " + strs.str() + "<br />";
     if(playback)
         msg += "I'm currently playing song : <br />"
-             + currentSong.title +" : " + currentSong.artist  + "(Length: "+ Anal::toStr(getCurrentSongLength()) +"s ) <br />";
+             + currentSong.title +" : " + currentSong.artist  + "(Length: "/*+ Anal::toStr(getCurrentSongLength()) +*/"s ) <br />";
     if(!queuedSongs.empty())
       msg += "Playlist: <br />" 
 	  + genPlaylistString();

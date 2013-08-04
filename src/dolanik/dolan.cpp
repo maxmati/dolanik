@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2013  <copyright holder> <email>
+    Copyright (C) 2013  Mateusz "MaxMati" Nowotynski <maxmati4@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,59 +17,70 @@
 */
 
 
-
-#include "../libmumbleclient/Client.hpp"
-#include "../libmumbleclient/ClientLib.hpp"
-#include "../libmumbleclient/Settings.hpp"
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 
-#include "music.h"
+#include <libmumbleclient/ClientLib.hpp>
 
 #include "dolan.h"
+#include "server.h"
 
 
 namespace Dolanik {
+std::map< uint, boost::shared_ptr< Server > > Dolan::getServers()
+{
+  return this->servers;
+}
 
-Dolan::Dolan()
-    :mumbleClientLib(MumbleClient::MumbleClientLib::instance()),
-     mumbleClient(mumbleClientLib->NewClient()),
-     music( new Music (mumbleClient.get()))
+
+Dolan::Dolan():
+mumbleClientLib(MumbleClient::MumbleClientLib::instance()),
+nextId(0)
 {
     mumbleClientLib->SetLogLevel(3);
-    mumbleClient->Connect(MumbleClient::Settings("195.64.130.69", "64738", "Dolanik4", ""));
-    //mumbleClient->Connect(MumbleClient::Settings("127.0.0.1", "64738", "Dolanik4", ""));
-    mumbleClient->SetAuthCallback(boost::bind(&Dolan::onAuth, this));
-
-
 }
+void Dolan::disconnect(int id)
+{
+  servers.at(id)->disconnect();
+  servers.erase(id);
+}
+
+uint Dolan::connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password)
+{
+  uint id = nextId++;
+  boost::shared_ptr<Server> server(new Server(mumbleClientLib->NewClient()));
+  servers.insert(std::pair<uint, boost::shared_ptr<Server> > (id, server));
+  servers.at(id)->connect(host,port,username,password);
+  return id;
+}
+
 
 void Dolan::init()
 {
-    //Threads::Pool::getInstance()->addTask(shared_from_this());
     boost::thread(boost::bind(&Dolan::run,this));
-
 }
 
 
 void Dolan::onAuth()
 {
-    //Threads::Pool::getInstance()->addTask(this->music);
 }
 
 void Dolan::run()
 {
+  this->running = true;
+  while(this->running)
     mumbleClientLib->Run();
 }
 
-boost::shared_ptr< Music > Dolan::Dolan::getMusic()
+boost::shared_ptr< Music > Dolan::Dolan::getMusic(uint id)
 {
-  return this->music;
+  return this->servers.at(id)->getMusic();
 }
 
 
 Dolan::~Dolan()
 {
-    mumbleClientLib->Shutdown();
+  this->running = false;
+  mumbleClientLib->Shutdown();
 }
 }

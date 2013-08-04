@@ -1,16 +1,16 @@
 #include <iostream>
 #include <Ice/Ice.h>
-#include "ice/dolanI.h"
+#include <ice/dolanI.h>
 
-#include "dolanik/dolan.h"
+#include <dolanik/dolan.h>
 
 
 
 
 int  main()
 {
-	Dolanik::Dolan dolan;
-	dolan.init();
+	boost::shared_ptr<Dolanik::Dolan> dolan(new Dolanik::Dolan);
+	dolan->init();
 	
 	int status = 0;
 	Ice::CommunicatorPtr ic;
@@ -18,8 +18,10 @@ int  main()
 		ic = Ice::initialize();
 		Ice::ObjectAdapterPtr adapter =
 			ic->createObjectAdapterWithEndpoints("DolanAdapter", "default -p 10000");
-		Ice::ObjectPtr object = new MusicI(dolan.getMusic());
-		adapter->add(object, ic->stringToIdentity("Music"));
+		Ice::ObjectPtr music = new MusicI(dolan.get());
+		adapter->add(music, ic->stringToIdentity("Music"));
+		Ice::ObjectPtr server = new ServerI(dolan.get());
+		adapter->add(server, ic->stringToIdentity("Server"));
 		adapter->activate();
 		ic->waitForShutdown();
 	} catch (const Ice::Exception& e) {

@@ -56,8 +56,17 @@ static const ::std::string __Dolan__Music__getVolume_name = "getVolume";
 
 static const ::std::string __Dolan__Music__setVolume_name = "setVolume";
 
+static const ::std::string __Dolan__Server__connect_name = "connect";
+
+static const ::std::string __Dolan__Server__getServers_name = "getServers";
+
+static const ::std::string __Dolan__Server__disconnect_name = "disconnect";
+
 ::Ice::Object* ::Dolan::upCast(::Dolan::Music* p) { return p; }
 ::IceProxy::Ice::Object* IceProxy::Dolan::upCast(::IceProxy::Dolan::Music* p) { return p; }
+
+::Ice::Object* ::Dolan::upCast(::Dolan::Server* p) { return p; }
+::IceProxy::Ice::Object* IceProxy::Dolan::upCast(::IceProxy::Dolan::Server* p) { return p; }
 
 void
 Dolan::__read(::IceInternal::BasicStream* __is, ::Dolan::MusicPrx& v)
@@ -71,6 +80,22 @@ Dolan::__read(::IceInternal::BasicStream* __is, ::Dolan::MusicPrx& v)
     else
     {
         v = new ::IceProxy::Dolan::Music;
+        v->__copyFrom(proxy);
+    }
+}
+
+void
+Dolan::__read(::IceInternal::BasicStream* __is, ::Dolan::ServerPrx& v)
+{
+    ::Ice::ObjectPrx proxy;
+    __is->read(proxy);
+    if(!proxy)
+    {
+        v = 0;
+    }
+    else
+    {
+        v = new ::IceProxy::Dolan::Server;
         v->__copyFrom(proxy);
     }
 }
@@ -93,8 +118,65 @@ Dolan::Song::__read(::IceInternal::BasicStream* __is)
     __is->read(artist);
 }
 
+Dolan::ServerInfo::ServerInfo() :
+    id(-1)
+{
+}
+
+Dolan::ServerInfo::ServerInfo(const ::std::string& __ice_host, const ::std::string& __ice_port, const ::std::string& __ice_username, const ::std::string& __ice_password, ::Ice::Int __ice_id) :
+    host(__ice_host),
+    port(__ice_port),
+    username(__ice_username),
+    password(__ice_password),
+    id(__ice_id)
+{
+}
+
 void
-IceProxy::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* __ctx)
+Dolan::ServerInfo::__write(::IceInternal::BasicStream* __os) const
+{
+    __os->write(host);
+    __os->write(port);
+    __os->write(username);
+    __os->write(password);
+    __os->write(id);
+}
+
+void
+Dolan::ServerInfo::__read(::IceInternal::BasicStream* __is)
+{
+    __is->read(host);
+    __is->read(port);
+    __is->read(username);
+    __is->read(password);
+    __is->read(id);
+}
+
+void
+Dolan::__writeServersInfo(::IceInternal::BasicStream* __os, const ::Dolan::ServerInfo* begin, const ::Dolan::ServerInfo* end)
+{
+    ::Ice::Int size = static_cast< ::Ice::Int>(end - begin);
+    __os->writeSize(size);
+    for(int i = 0; i < size; ++i)
+    {
+        begin[i].__write(__os);
+    }
+}
+
+void
+Dolan::__readServersInfo(::IceInternal::BasicStream* __is, ::Dolan::ServersInfo& v)
+{
+    ::Ice::Int sz;
+    __is->readAndCheckSeqSize(8, sz);
+    v.resize(sz);
+    for(int i = 0; i < sz; ++i)
+    {
+        v[i].__read(__is);
+    }
+}
+
+void
+IceProxy::Dolan::Music::play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -104,7 +186,7 @@ IceProxy::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* __ctx
         {
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            __del->play(s, __ctx);
+            __del->play(serverId, s, __ctx);
             return;
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
@@ -119,13 +201,14 @@ IceProxy::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* __ctx
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_play(const ::Dolan::Song& s, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__play_name, __del, __cookie);
     try
     {
         __result->__prepare(__Dolan__Music__play_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         s.__write(__os);
         __os->endWriteEncaps();
         __result->__send(true);
@@ -144,7 +227,7 @@ IceProxy::Dolan::Music::end_play(const ::Ice::AsyncResultPtr& __result)
 }
 
 ::Dolan::Song
-IceProxy::Dolan::Music::getCurrentSong(const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::getCurrentSong(::Ice::Int serverId, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -155,7 +238,7 @@ IceProxy::Dolan::Music::getCurrentSong(const ::Ice::Context* __ctx)
             __checkTwowayOnly(__Dolan__Music__getCurrentSong_name);
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            return __del->getCurrentSong(__ctx);
+            return __del->getCurrentSong(serverId, __ctx);
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
         {
@@ -169,7 +252,7 @@ IceProxy::Dolan::Music::getCurrentSong(const ::Ice::Context* __ctx)
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_getCurrentSong(const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_getCurrentSong(::Ice::Int serverId, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     __checkAsyncTwowayOnly(__Dolan__Music__getCurrentSong_name);
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__getCurrentSong_name, __del, __cookie);
@@ -177,6 +260,7 @@ IceProxy::Dolan::Music::begin_getCurrentSong(const ::Ice::Context* __ctx, const 
     {
         __result->__prepare(__Dolan__Music__getCurrentSong_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->endWriteEncaps();
         __result->__send(true);
     }
@@ -211,7 +295,7 @@ IceProxy::Dolan::Music::end_getCurrentSong(const ::Ice::AsyncResultPtr& __result
 }
 
 void
-IceProxy::Dolan::Music::stop(const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::stop(::Ice::Int serverId, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -221,7 +305,7 @@ IceProxy::Dolan::Music::stop(const ::Ice::Context* __ctx)
         {
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            __del->stop(__ctx);
+            __del->stop(serverId, __ctx);
             return;
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
@@ -236,13 +320,14 @@ IceProxy::Dolan::Music::stop(const ::Ice::Context* __ctx)
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_stop(const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_stop(::Ice::Int serverId, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__stop_name, __del, __cookie);
     try
     {
         __result->__prepare(__Dolan__Music__stop_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->endWriteEncaps();
         __result->__send(true);
     }
@@ -260,7 +345,7 @@ IceProxy::Dolan::Music::end_stop(const ::Ice::AsyncResultPtr& __result)
 }
 
 ::Ice::Double
-IceProxy::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -271,7 +356,7 @@ IceProxy::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Context* 
             __checkTwowayOnly(__Dolan__Music__adjustVolume_name);
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            return __del->adjustVolume(delta, __ctx);
+            return __del->adjustVolume(serverId, delta, __ctx);
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
         {
@@ -285,7 +370,7 @@ IceProxy::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Context* 
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_adjustVolume(::Ice::Double delta, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     __checkAsyncTwowayOnly(__Dolan__Music__adjustVolume_name);
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__adjustVolume_name, __del, __cookie);
@@ -293,6 +378,7 @@ IceProxy::Dolan::Music::begin_adjustVolume(::Ice::Double delta, const ::Ice::Con
     {
         __result->__prepare(__Dolan__Music__adjustVolume_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->write(delta);
         __os->endWriteEncaps();
         __result->__send(true);
@@ -328,7 +414,7 @@ IceProxy::Dolan::Music::end_adjustVolume(const ::Ice::AsyncResultPtr& __result)
 }
 
 void
-IceProxy::Dolan::Music::replay(const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::replay(::Ice::Int serverId, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -338,7 +424,7 @@ IceProxy::Dolan::Music::replay(const ::Ice::Context* __ctx)
         {
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            __del->replay(__ctx);
+            __del->replay(serverId, __ctx);
             return;
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
@@ -353,13 +439,14 @@ IceProxy::Dolan::Music::replay(const ::Ice::Context* __ctx)
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_replay(const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_replay(::Ice::Int serverId, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__replay_name, __del, __cookie);
     try
     {
         __result->__prepare(__Dolan__Music__replay_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->endWriteEncaps();
         __result->__send(true);
     }
@@ -377,7 +464,7 @@ IceProxy::Dolan::Music::end_replay(const ::Ice::AsyncResultPtr& __result)
 }
 
 void
-IceProxy::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -387,7 +474,7 @@ IceProxy::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, const :
         {
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            __del->setEqualizer(band, amp, __ctx);
+            __del->setEqualizer(serverId, band, amp, __ctx);
             return;
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
@@ -402,13 +489,14 @@ IceProxy::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, const :
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__setEqualizer_name, __del, __cookie);
     try
     {
         __result->__prepare(__Dolan__Music__setEqualizer_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->write(band);
         __os->write(amp);
         __os->endWriteEncaps();
@@ -428,7 +516,7 @@ IceProxy::Dolan::Music::end_setEqualizer(const ::Ice::AsyncResultPtr& __result)
 }
 
 void
-IceProxy::Dolan::Music::resetEqualizer(const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::resetEqualizer(::Ice::Int serverId, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -438,7 +526,7 @@ IceProxy::Dolan::Music::resetEqualizer(const ::Ice::Context* __ctx)
         {
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            __del->resetEqualizer(__ctx);
+            __del->resetEqualizer(serverId, __ctx);
             return;
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
@@ -453,13 +541,14 @@ IceProxy::Dolan::Music::resetEqualizer(const ::Ice::Context* __ctx)
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_resetEqualizer(const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_resetEqualizer(::Ice::Int serverId, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__resetEqualizer_name, __del, __cookie);
     try
     {
         __result->__prepare(__Dolan__Music__resetEqualizer_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->endWriteEncaps();
         __result->__send(true);
     }
@@ -477,7 +566,7 @@ IceProxy::Dolan::Music::end_resetEqualizer(const ::Ice::AsyncResultPtr& __result
 }
 
 void
-IceProxy::Dolan::Music::clearQueue(const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::clearQueue(::Ice::Int serverId, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -487,7 +576,7 @@ IceProxy::Dolan::Music::clearQueue(const ::Ice::Context* __ctx)
         {
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            __del->clearQueue(__ctx);
+            __del->clearQueue(serverId, __ctx);
             return;
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
@@ -502,13 +591,14 @@ IceProxy::Dolan::Music::clearQueue(const ::Ice::Context* __ctx)
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_clearQueue(const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_clearQueue(::Ice::Int serverId, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__clearQueue_name, __del, __cookie);
     try
     {
         __result->__prepare(__Dolan__Music__clearQueue_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->endWriteEncaps();
         __result->__send(true);
     }
@@ -526,7 +616,7 @@ IceProxy::Dolan::Music::end_clearQueue(const ::Ice::AsyncResultPtr& __result)
 }
 
 ::Ice::Double
-IceProxy::Dolan::Music::getVolume(const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::getVolume(::Ice::Int serverId, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -537,7 +627,7 @@ IceProxy::Dolan::Music::getVolume(const ::Ice::Context* __ctx)
             __checkTwowayOnly(__Dolan__Music__getVolume_name);
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            return __del->getVolume(__ctx);
+            return __del->getVolume(serverId, __ctx);
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
         {
@@ -551,7 +641,7 @@ IceProxy::Dolan::Music::getVolume(const ::Ice::Context* __ctx)
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_getVolume(const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_getVolume(::Ice::Int serverId, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     __checkAsyncTwowayOnly(__Dolan__Music__getVolume_name);
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__getVolume_name, __del, __cookie);
@@ -559,6 +649,7 @@ IceProxy::Dolan::Music::begin_getVolume(const ::Ice::Context* __ctx, const ::Ice
     {
         __result->__prepare(__Dolan__Music__getVolume_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->endWriteEncaps();
         __result->__send(true);
     }
@@ -593,7 +684,7 @@ IceProxy::Dolan::Music::end_getVolume(const ::Ice::AsyncResultPtr& __result)
 }
 
 void
-IceProxy::Dolan::Music::setVolume(::Ice::Double volume, const ::Ice::Context* __ctx)
+IceProxy::Dolan::Music::setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Context* __ctx)
 {
     int __cnt = 0;
     while(true)
@@ -603,7 +694,7 @@ IceProxy::Dolan::Music::setVolume(::Ice::Double volume, const ::Ice::Context* __
         {
             __delBase = __getDelegate(false);
             ::IceDelegate::Dolan::Music* __del = dynamic_cast< ::IceDelegate::Dolan::Music*>(__delBase.get());
-            __del->setVolume(volume, __ctx);
+            __del->setVolume(serverId, volume, __ctx);
             return;
         }
         catch(const ::IceInternal::LocalExceptionWrapper& __ex)
@@ -618,13 +709,14 @@ IceProxy::Dolan::Music::setVolume(::Ice::Double volume, const ::Ice::Context* __
 }
 
 ::Ice::AsyncResultPtr
-IceProxy::Dolan::Music::begin_setVolume(::Ice::Double volume, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+IceProxy::Dolan::Music::begin_setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
 {
     ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Music__setVolume_name, __del, __cookie);
     try
     {
         __result->__prepare(__Dolan__Music__setVolume_name, ::Ice::Normal, __ctx);
         ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(serverId);
         __os->write(volume);
         __os->endWriteEncaps();
         __result->__send(true);
@@ -666,13 +758,223 @@ IceProxy::Dolan::Music::__newInstance() const
     return new Music;
 }
 
+::Ice::Int
+IceProxy::Dolan::Server::connect(const ::Dolan::ServerInfo& si, const ::Ice::Context* __ctx)
+{
+    int __cnt = 0;
+    while(true)
+    {
+        ::IceInternal::Handle< ::IceDelegate::Ice::Object> __delBase;
+        try
+        {
+            __checkTwowayOnly(__Dolan__Server__connect_name);
+            __delBase = __getDelegate(false);
+            ::IceDelegate::Dolan::Server* __del = dynamic_cast< ::IceDelegate::Dolan::Server*>(__delBase.get());
+            return __del->connect(si, __ctx);
+        }
+        catch(const ::IceInternal::LocalExceptionWrapper& __ex)
+        {
+            __handleExceptionWrapper(__delBase, __ex);
+        }
+        catch(const ::Ice::LocalException& __ex)
+        {
+            __handleException(__delBase, __ex, true, __cnt);
+        }
+    }
+}
+
+::Ice::AsyncResultPtr
+IceProxy::Dolan::Server::begin_connect(const ::Dolan::ServerInfo& si, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+{
+    __checkAsyncTwowayOnly(__Dolan__Server__connect_name);
+    ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Server__connect_name, __del, __cookie);
+    try
+    {
+        __result->__prepare(__Dolan__Server__connect_name, ::Ice::Normal, __ctx);
+        ::IceInternal::BasicStream* __os = __result->__getOs();
+        si.__write(__os);
+        __os->endWriteEncaps();
+        __result->__send(true);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __result->__exceptionAsync(__ex);
+    }
+    return __result;
+}
+
+::Ice::Int
+IceProxy::Dolan::Server::end_connect(const ::Ice::AsyncResultPtr& __result)
+{
+    ::Ice::AsyncResult::__check(__result, this, __Dolan__Server__connect_name);
+    ::Ice::Int __ret;
+    if(!__result->__wait())
+    {
+        try
+        {
+            __result->__throwUserException();
+        }
+        catch(const ::Ice::UserException& __ex)
+        {
+            throw ::Ice::UnknownUserException(__FILE__, __LINE__, __ex.ice_name());
+        }
+    }
+    ::IceInternal::BasicStream* __is = __result->__getIs();
+    __is->startReadEncaps();
+    __is->read(__ret);
+    __is->endReadEncaps();
+    return __ret;
+}
+
+::Dolan::ServersInfo
+IceProxy::Dolan::Server::getServers(const ::Ice::Context* __ctx)
+{
+    int __cnt = 0;
+    while(true)
+    {
+        ::IceInternal::Handle< ::IceDelegate::Ice::Object> __delBase;
+        try
+        {
+            __checkTwowayOnly(__Dolan__Server__getServers_name);
+            __delBase = __getDelegate(false);
+            ::IceDelegate::Dolan::Server* __del = dynamic_cast< ::IceDelegate::Dolan::Server*>(__delBase.get());
+            return __del->getServers(__ctx);
+        }
+        catch(const ::IceInternal::LocalExceptionWrapper& __ex)
+        {
+            __handleExceptionWrapper(__delBase, __ex);
+        }
+        catch(const ::Ice::LocalException& __ex)
+        {
+            __handleException(__delBase, __ex, true, __cnt);
+        }
+    }
+}
+
+::Ice::AsyncResultPtr
+IceProxy::Dolan::Server::begin_getServers(const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+{
+    __checkAsyncTwowayOnly(__Dolan__Server__getServers_name);
+    ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Server__getServers_name, __del, __cookie);
+    try
+    {
+        __result->__prepare(__Dolan__Server__getServers_name, ::Ice::Normal, __ctx);
+        ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->endWriteEncaps();
+        __result->__send(true);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __result->__exceptionAsync(__ex);
+    }
+    return __result;
+}
+
+::Dolan::ServersInfo
+IceProxy::Dolan::Server::end_getServers(const ::Ice::AsyncResultPtr& __result)
+{
+    ::Ice::AsyncResult::__check(__result, this, __Dolan__Server__getServers_name);
+    ::Dolan::ServersInfo __ret;
+    if(!__result->__wait())
+    {
+        try
+        {
+            __result->__throwUserException();
+        }
+        catch(const ::Ice::UserException& __ex)
+        {
+            throw ::Ice::UnknownUserException(__FILE__, __LINE__, __ex.ice_name());
+        }
+    }
+    ::IceInternal::BasicStream* __is = __result->__getIs();
+    __is->startReadEncaps();
+    ::Dolan::__readServersInfo(__is, __ret);
+    __is->endReadEncaps();
+    return __ret;
+}
+
 void
-IceDelegateM::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* __context)
+IceProxy::Dolan::Server::disconnect(::Ice::Int id, const ::Ice::Context* __ctx)
+{
+    int __cnt = 0;
+    while(true)
+    {
+        ::IceInternal::Handle< ::IceDelegate::Ice::Object> __delBase;
+        try
+        {
+            __delBase = __getDelegate(false);
+            ::IceDelegate::Dolan::Server* __del = dynamic_cast< ::IceDelegate::Dolan::Server*>(__delBase.get());
+            __del->disconnect(id, __ctx);
+            return;
+        }
+        catch(const ::IceInternal::LocalExceptionWrapper& __ex)
+        {
+            __handleExceptionWrapper(__delBase, __ex);
+        }
+        catch(const ::Ice::LocalException& __ex)
+        {
+            __handleException(__delBase, __ex, true, __cnt);
+        }
+    }
+}
+
+::Ice::AsyncResultPtr
+IceProxy::Dolan::Server::begin_disconnect(::Ice::Int id, const ::Ice::Context* __ctx, const ::IceInternal::CallbackBasePtr& __del, const ::Ice::LocalObjectPtr& __cookie)
+{
+    ::IceInternal::OutgoingAsyncPtr __result = new ::IceInternal::OutgoingAsync(this, __Dolan__Server__disconnect_name, __del, __cookie);
+    try
+    {
+        __result->__prepare(__Dolan__Server__disconnect_name, ::Ice::Normal, __ctx);
+        ::IceInternal::BasicStream* __os = __result->__getOs();
+        __os->write(id);
+        __os->endWriteEncaps();
+        __result->__send(true);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __result->__exceptionAsync(__ex);
+    }
+    return __result;
+}
+
+void
+IceProxy::Dolan::Server::end_disconnect(const ::Ice::AsyncResultPtr& __result)
+{
+    __end(__result, __Dolan__Server__disconnect_name);
+}
+
+const ::std::string&
+IceProxy::Dolan::Server::ice_staticId()
+{
+    return ::Dolan::Server::ice_staticId();
+}
+
+::IceInternal::Handle< ::IceDelegateM::Ice::Object>
+IceProxy::Dolan::Server::__createDelegateM()
+{
+    return ::IceInternal::Handle< ::IceDelegateM::Ice::Object>(new ::IceDelegateM::Dolan::Server);
+}
+
+::IceInternal::Handle< ::IceDelegateD::Ice::Object>
+IceProxy::Dolan::Server::__createDelegateD()
+{
+    return ::IceInternal::Handle< ::IceDelegateD::Ice::Object>(new ::IceDelegateD::Dolan::Server);
+}
+
+::IceProxy::Ice::Object*
+IceProxy::Dolan::Server::__newInstance() const
+{
+    return new Server;
+}
+
+void
+IceDelegateM::Dolan::Music::play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Context* __context)
 {
     ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__play_name, ::Ice::Normal, __context);
     try
     {
         ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
         s.__write(__os);
     }
     catch(const ::Ice::LocalException& __ex)
@@ -706,9 +1008,18 @@ IceDelegateM::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* _
 }
 
 ::Dolan::Song
-IceDelegateM::Dolan::Music::getCurrentSong(const ::Ice::Context* __context)
+IceDelegateM::Dolan::Music::getCurrentSong(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__getCurrentSong_name, ::Ice::Normal, __context);
+    try
+    {
+        ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __og.abort(__ex);
+    }
     bool __ok = __og.invoke();
     ::Dolan::Song __ret;
     try
@@ -738,9 +1049,18 @@ IceDelegateM::Dolan::Music::getCurrentSong(const ::Ice::Context* __context)
 }
 
 void
-IceDelegateM::Dolan::Music::stop(const ::Ice::Context* __context)
+IceDelegateM::Dolan::Music::stop(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__stop_name, ::Ice::Normal, __context);
+    try
+    {
+        ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __og.abort(__ex);
+    }
     bool __ok = __og.invoke();
     if(!__og.is()->b.empty())
     {
@@ -768,12 +1088,13 @@ IceDelegateM::Dolan::Music::stop(const ::Ice::Context* __context)
 }
 
 ::Ice::Double
-IceDelegateM::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Context* __context)
+IceDelegateM::Dolan::Music::adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Context* __context)
 {
     ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__adjustVolume_name, ::Ice::Normal, __context);
     try
     {
         ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
         __os->write(delta);
     }
     catch(const ::Ice::LocalException& __ex)
@@ -809,9 +1130,18 @@ IceDelegateM::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Conte
 }
 
 void
-IceDelegateM::Dolan::Music::replay(const ::Ice::Context* __context)
+IceDelegateM::Dolan::Music::replay(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__replay_name, ::Ice::Normal, __context);
+    try
+    {
+        ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __og.abort(__ex);
+    }
     bool __ok = __og.invoke();
     if(!__og.is()->b.empty())
     {
@@ -839,12 +1169,13 @@ IceDelegateM::Dolan::Music::replay(const ::Ice::Context* __context)
 }
 
 void
-IceDelegateM::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::Context* __context)
+IceDelegateM::Dolan::Music::setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Context* __context)
 {
     ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__setEqualizer_name, ::Ice::Normal, __context);
     try
     {
         ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
         __os->write(band);
         __os->write(amp);
     }
@@ -879,105 +1210,13 @@ IceDelegateM::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, con
 }
 
 void
-IceDelegateM::Dolan::Music::resetEqualizer(const ::Ice::Context* __context)
+IceDelegateM::Dolan::Music::resetEqualizer(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__resetEqualizer_name, ::Ice::Normal, __context);
-    bool __ok = __og.invoke();
-    if(!__og.is()->b.empty())
-    {
-        try
-        {
-            if(!__ok)
-            {
-                try
-                {
-                    __og.throwUserException();
-                }
-                catch(const ::Ice::UserException& __ex)
-                {
-                    ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
-                    throw __uue;
-                }
-            }
-            __og.is()->skipEmptyEncaps();
-        }
-        catch(const ::Ice::LocalException& __ex)
-        {
-            throw ::IceInternal::LocalExceptionWrapper(__ex, false);
-        }
-    }
-}
-
-void
-IceDelegateM::Dolan::Music::clearQueue(const ::Ice::Context* __context)
-{
-    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__clearQueue_name, ::Ice::Normal, __context);
-    bool __ok = __og.invoke();
-    if(!__og.is()->b.empty())
-    {
-        try
-        {
-            if(!__ok)
-            {
-                try
-                {
-                    __og.throwUserException();
-                }
-                catch(const ::Ice::UserException& __ex)
-                {
-                    ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
-                    throw __uue;
-                }
-            }
-            __og.is()->skipEmptyEncaps();
-        }
-        catch(const ::Ice::LocalException& __ex)
-        {
-            throw ::IceInternal::LocalExceptionWrapper(__ex, false);
-        }
-    }
-}
-
-::Ice::Double
-IceDelegateM::Dolan::Music::getVolume(const ::Ice::Context* __context)
-{
-    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__getVolume_name, ::Ice::Normal, __context);
-    bool __ok = __og.invoke();
-    ::Ice::Double __ret;
-    try
-    {
-        if(!__ok)
-        {
-            try
-            {
-                __og.throwUserException();
-            }
-            catch(const ::Ice::UserException& __ex)
-            {
-                ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
-                throw __uue;
-            }
-        }
-        ::IceInternal::BasicStream* __is = __og.is();
-        __is->startReadEncaps();
-        __is->read(__ret);
-        __is->endReadEncaps();
-        return __ret;
-    }
-    catch(const ::Ice::LocalException& __ex)
-    {
-        throw ::IceInternal::LocalExceptionWrapper(__ex, false);
-    }
-}
-
-void
-IceDelegateM::Dolan::Music::setVolume(::Ice::Double volume, const ::Ice::Context* __context)
-{
-    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__setVolume_name, ::Ice::Normal, __context);
     try
     {
         ::IceInternal::BasicStream* __os = __og.os();
-        __os->write(volume);
+        __os->write(serverId);
     }
     catch(const ::Ice::LocalException& __ex)
     {
@@ -1010,14 +1249,247 @@ IceDelegateM::Dolan::Music::setVolume(::Ice::Double volume, const ::Ice::Context
 }
 
 void
-IceDelegateD::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* __context)
+IceDelegateM::Dolan::Music::clearQueue(::Ice::Int serverId, const ::Ice::Context* __context)
+{
+    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__clearQueue_name, ::Ice::Normal, __context);
+    try
+    {
+        ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __og.abort(__ex);
+    }
+    bool __ok = __og.invoke();
+    if(!__og.is()->b.empty())
+    {
+        try
+        {
+            if(!__ok)
+            {
+                try
+                {
+                    __og.throwUserException();
+                }
+                catch(const ::Ice::UserException& __ex)
+                {
+                    ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
+                    throw __uue;
+                }
+            }
+            __og.is()->skipEmptyEncaps();
+        }
+        catch(const ::Ice::LocalException& __ex)
+        {
+            throw ::IceInternal::LocalExceptionWrapper(__ex, false);
+        }
+    }
+}
+
+::Ice::Double
+IceDelegateM::Dolan::Music::getVolume(::Ice::Int serverId, const ::Ice::Context* __context)
+{
+    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__getVolume_name, ::Ice::Normal, __context);
+    try
+    {
+        ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __og.abort(__ex);
+    }
+    bool __ok = __og.invoke();
+    ::Ice::Double __ret;
+    try
+    {
+        if(!__ok)
+        {
+            try
+            {
+                __og.throwUserException();
+            }
+            catch(const ::Ice::UserException& __ex)
+            {
+                ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
+                throw __uue;
+            }
+        }
+        ::IceInternal::BasicStream* __is = __og.is();
+        __is->startReadEncaps();
+        __is->read(__ret);
+        __is->endReadEncaps();
+        return __ret;
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        throw ::IceInternal::LocalExceptionWrapper(__ex, false);
+    }
+}
+
+void
+IceDelegateM::Dolan::Music::setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Context* __context)
+{
+    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Music__setVolume_name, ::Ice::Normal, __context);
+    try
+    {
+        ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(serverId);
+        __os->write(volume);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __og.abort(__ex);
+    }
+    bool __ok = __og.invoke();
+    if(!__og.is()->b.empty())
+    {
+        try
+        {
+            if(!__ok)
+            {
+                try
+                {
+                    __og.throwUserException();
+                }
+                catch(const ::Ice::UserException& __ex)
+                {
+                    ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
+                    throw __uue;
+                }
+            }
+            __og.is()->skipEmptyEncaps();
+        }
+        catch(const ::Ice::LocalException& __ex)
+        {
+            throw ::IceInternal::LocalExceptionWrapper(__ex, false);
+        }
+    }
+}
+
+::Ice::Int
+IceDelegateM::Dolan::Server::connect(const ::Dolan::ServerInfo& si, const ::Ice::Context* __context)
+{
+    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Server__connect_name, ::Ice::Normal, __context);
+    try
+    {
+        ::IceInternal::BasicStream* __os = __og.os();
+        si.__write(__os);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __og.abort(__ex);
+    }
+    bool __ok = __og.invoke();
+    ::Ice::Int __ret;
+    try
+    {
+        if(!__ok)
+        {
+            try
+            {
+                __og.throwUserException();
+            }
+            catch(const ::Ice::UserException& __ex)
+            {
+                ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
+                throw __uue;
+            }
+        }
+        ::IceInternal::BasicStream* __is = __og.is();
+        __is->startReadEncaps();
+        __is->read(__ret);
+        __is->endReadEncaps();
+        return __ret;
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        throw ::IceInternal::LocalExceptionWrapper(__ex, false);
+    }
+}
+
+::Dolan::ServersInfo
+IceDelegateM::Dolan::Server::getServers(const ::Ice::Context* __context)
+{
+    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Server__getServers_name, ::Ice::Normal, __context);
+    bool __ok = __og.invoke();
+    ::Dolan::ServersInfo __ret;
+    try
+    {
+        if(!__ok)
+        {
+            try
+            {
+                __og.throwUserException();
+            }
+            catch(const ::Ice::UserException& __ex)
+            {
+                ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
+                throw __uue;
+            }
+        }
+        ::IceInternal::BasicStream* __is = __og.is();
+        __is->startReadEncaps();
+        ::Dolan::__readServersInfo(__is, __ret);
+        __is->endReadEncaps();
+        return __ret;
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        throw ::IceInternal::LocalExceptionWrapper(__ex, false);
+    }
+}
+
+void
+IceDelegateM::Dolan::Server::disconnect(::Ice::Int id, const ::Ice::Context* __context)
+{
+    ::IceInternal::Outgoing __og(__handler.get(), __Dolan__Server__disconnect_name, ::Ice::Normal, __context);
+    try
+    {
+        ::IceInternal::BasicStream* __os = __og.os();
+        __os->write(id);
+    }
+    catch(const ::Ice::LocalException& __ex)
+    {
+        __og.abort(__ex);
+    }
+    bool __ok = __og.invoke();
+    if(!__og.is()->b.empty())
+    {
+        try
+        {
+            if(!__ok)
+            {
+                try
+                {
+                    __og.throwUserException();
+                }
+                catch(const ::Ice::UserException& __ex)
+                {
+                    ::Ice::UnknownUserException __uue(__FILE__, __LINE__, __ex.ice_name());
+                    throw __uue;
+                }
+            }
+            __og.is()->skipEmptyEncaps();
+        }
+        catch(const ::Ice::LocalException& __ex)
+        {
+            throw ::IceInternal::LocalExceptionWrapper(__ex, false);
+        }
+    }
+}
+
+void
+IceDelegateD::Dolan::Music::play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(const ::Dolan::Song& s, const ::Ice::Current& __current) : 
+        _DirectI(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Current& __current) : 
             ::IceInternal::Direct(__current),
+            _m_serverId(serverId),
             _m_s(s)
         {
         }
@@ -1030,12 +1502,13 @@ IceDelegateD::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* _
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            servant->play(_m_s, _current);
+            servant->play(_m_serverId, _m_s, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
+        ::Ice::Int _m_serverId;
         const ::Dolan::Song& _m_s;
     };
     
@@ -1043,7 +1516,7 @@ IceDelegateD::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* _
     __initCurrent(__current, __Dolan__Music__play_name, ::Ice::Normal, __context);
     try
     {
-        _DirectI __direct(s, __current);
+        _DirectI __direct(serverId, s, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1074,15 +1547,16 @@ IceDelegateD::Dolan::Music::play(const ::Dolan::Song& s, const ::Ice::Context* _
 }
 
 ::Dolan::Song
-IceDelegateD::Dolan::Music::getCurrentSong(const ::Ice::Context* __context)
+IceDelegateD::Dolan::Music::getCurrentSong(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(::Dolan::Song& __result, const ::Ice::Current& __current) : 
+        _DirectI(::Dolan::Song& __result, ::Ice::Int serverId, const ::Ice::Current& __current) : 
             ::IceInternal::Direct(__current),
-            _result(__result)
+            _result(__result),
+            _m_serverId(serverId)
         {
         }
         
@@ -1094,13 +1568,14 @@ IceDelegateD::Dolan::Music::getCurrentSong(const ::Ice::Context* __context)
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            _result = servant->getCurrentSong(_current);
+            _result = servant->getCurrentSong(_m_serverId, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
         ::Dolan::Song& _result;
+        ::Ice::Int _m_serverId;
     };
     
     ::Ice::Current __current;
@@ -1108,7 +1583,7 @@ IceDelegateD::Dolan::Music::getCurrentSong(const ::Ice::Context* __context)
     ::Dolan::Song __result;
     try
     {
-        _DirectI __direct(__result, __current);
+        _DirectI __direct(__result, serverId, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1140,14 +1615,15 @@ IceDelegateD::Dolan::Music::getCurrentSong(const ::Ice::Context* __context)
 }
 
 void
-IceDelegateD::Dolan::Music::stop(const ::Ice::Context* __context)
+IceDelegateD::Dolan::Music::stop(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(const ::Ice::Current& __current) : 
-            ::IceInternal::Direct(__current)
+        _DirectI(::Ice::Int serverId, const ::Ice::Current& __current) : 
+            ::IceInternal::Direct(__current),
+            _m_serverId(serverId)
         {
         }
         
@@ -1159,19 +1635,20 @@ IceDelegateD::Dolan::Music::stop(const ::Ice::Context* __context)
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            servant->stop(_current);
+            servant->stop(_m_serverId, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
+        ::Ice::Int _m_serverId;
     };
     
     ::Ice::Current __current;
     __initCurrent(__current, __Dolan__Music__stop_name, ::Ice::Normal, __context);
     try
     {
-        _DirectI __direct(__current);
+        _DirectI __direct(serverId, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1202,15 +1679,16 @@ IceDelegateD::Dolan::Music::stop(const ::Ice::Context* __context)
 }
 
 ::Ice::Double
-IceDelegateD::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Context* __context)
+IceDelegateD::Dolan::Music::adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(::Ice::Double& __result, ::Ice::Double delta, const ::Ice::Current& __current) : 
+        _DirectI(::Ice::Double& __result, ::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Current& __current) : 
             ::IceInternal::Direct(__current),
             _result(__result),
+            _m_serverId(serverId),
             _m_delta(delta)
         {
         }
@@ -1223,13 +1701,14 @@ IceDelegateD::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Conte
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            _result = servant->adjustVolume(_m_delta, _current);
+            _result = servant->adjustVolume(_m_serverId, _m_delta, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
         ::Ice::Double& _result;
+        ::Ice::Int _m_serverId;
         ::Ice::Double _m_delta;
     };
     
@@ -1238,7 +1717,7 @@ IceDelegateD::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Conte
     ::Ice::Double __result;
     try
     {
-        _DirectI __direct(__result, delta, __current);
+        _DirectI __direct(__result, serverId, delta, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1270,14 +1749,15 @@ IceDelegateD::Dolan::Music::adjustVolume(::Ice::Double delta, const ::Ice::Conte
 }
 
 void
-IceDelegateD::Dolan::Music::replay(const ::Ice::Context* __context)
+IceDelegateD::Dolan::Music::replay(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(const ::Ice::Current& __current) : 
-            ::IceInternal::Direct(__current)
+        _DirectI(::Ice::Int serverId, const ::Ice::Current& __current) : 
+            ::IceInternal::Direct(__current),
+            _m_serverId(serverId)
         {
         }
         
@@ -1289,19 +1769,20 @@ IceDelegateD::Dolan::Music::replay(const ::Ice::Context* __context)
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            servant->replay(_current);
+            servant->replay(_m_serverId, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
+        ::Ice::Int _m_serverId;
     };
     
     ::Ice::Current __current;
     __initCurrent(__current, __Dolan__Music__replay_name, ::Ice::Normal, __context);
     try
     {
-        _DirectI __direct(__current);
+        _DirectI __direct(serverId, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1332,14 +1813,15 @@ IceDelegateD::Dolan::Music::replay(const ::Ice::Context* __context)
 }
 
 void
-IceDelegateD::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::Context* __context)
+IceDelegateD::Dolan::Music::setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(::Ice::Int band, ::Ice::Double amp, const ::Ice::Current& __current) : 
+        _DirectI(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Current& __current) : 
             ::IceInternal::Direct(__current),
+            _m_serverId(serverId),
             _m_band(band),
             _m_amp(amp)
         {
@@ -1353,12 +1835,13 @@ IceDelegateD::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, con
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            servant->setEqualizer(_m_band, _m_amp, _current);
+            servant->setEqualizer(_m_serverId, _m_band, _m_amp, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
+        ::Ice::Int _m_serverId;
         ::Ice::Int _m_band;
         ::Ice::Double _m_amp;
     };
@@ -1367,7 +1850,7 @@ IceDelegateD::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, con
     __initCurrent(__current, __Dolan__Music__setEqualizer_name, ::Ice::Normal, __context);
     try
     {
-        _DirectI __direct(band, amp, __current);
+        _DirectI __direct(serverId, band, amp, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1398,14 +1881,15 @@ IceDelegateD::Dolan::Music::setEqualizer(::Ice::Int band, ::Ice::Double amp, con
 }
 
 void
-IceDelegateD::Dolan::Music::resetEqualizer(const ::Ice::Context* __context)
+IceDelegateD::Dolan::Music::resetEqualizer(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(const ::Ice::Current& __current) : 
-            ::IceInternal::Direct(__current)
+        _DirectI(::Ice::Int serverId, const ::Ice::Current& __current) : 
+            ::IceInternal::Direct(__current),
+            _m_serverId(serverId)
         {
         }
         
@@ -1417,19 +1901,20 @@ IceDelegateD::Dolan::Music::resetEqualizer(const ::Ice::Context* __context)
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            servant->resetEqualizer(_current);
+            servant->resetEqualizer(_m_serverId, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
+        ::Ice::Int _m_serverId;
     };
     
     ::Ice::Current __current;
     __initCurrent(__current, __Dolan__Music__resetEqualizer_name, ::Ice::Normal, __context);
     try
     {
-        _DirectI __direct(__current);
+        _DirectI __direct(serverId, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1460,14 +1945,15 @@ IceDelegateD::Dolan::Music::resetEqualizer(const ::Ice::Context* __context)
 }
 
 void
-IceDelegateD::Dolan::Music::clearQueue(const ::Ice::Context* __context)
+IceDelegateD::Dolan::Music::clearQueue(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(const ::Ice::Current& __current) : 
-            ::IceInternal::Direct(__current)
+        _DirectI(::Ice::Int serverId, const ::Ice::Current& __current) : 
+            ::IceInternal::Direct(__current),
+            _m_serverId(serverId)
         {
         }
         
@@ -1479,19 +1965,20 @@ IceDelegateD::Dolan::Music::clearQueue(const ::Ice::Context* __context)
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            servant->clearQueue(_current);
+            servant->clearQueue(_m_serverId, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
+        ::Ice::Int _m_serverId;
     };
     
     ::Ice::Current __current;
     __initCurrent(__current, __Dolan__Music__clearQueue_name, ::Ice::Normal, __context);
     try
     {
-        _DirectI __direct(__current);
+        _DirectI __direct(serverId, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1522,15 +2009,16 @@ IceDelegateD::Dolan::Music::clearQueue(const ::Ice::Context* __context)
 }
 
 ::Ice::Double
-IceDelegateD::Dolan::Music::getVolume(const ::Ice::Context* __context)
+IceDelegateD::Dolan::Music::getVolume(::Ice::Int serverId, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(::Ice::Double& __result, const ::Ice::Current& __current) : 
+        _DirectI(::Ice::Double& __result, ::Ice::Int serverId, const ::Ice::Current& __current) : 
             ::IceInternal::Direct(__current),
-            _result(__result)
+            _result(__result),
+            _m_serverId(serverId)
         {
         }
         
@@ -1542,18 +2030,219 @@ IceDelegateD::Dolan::Music::getVolume(const ::Ice::Context* __context)
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            _result = servant->getVolume(_current);
+            _result = servant->getVolume(_m_serverId, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
         ::Ice::Double& _result;
+        ::Ice::Int _m_serverId;
     };
     
     ::Ice::Current __current;
     __initCurrent(__current, __Dolan__Music__getVolume_name, ::Ice::Normal, __context);
     ::Ice::Double __result;
+    try
+    {
+        _DirectI __direct(__result, serverId, __current);
+        try
+        {
+            __direct.servant()->__collocDispatch(__direct);
+        }
+        catch(...)
+        {
+            __direct.destroy();
+            throw;
+        }
+        __direct.destroy();
+    }
+    catch(const ::Ice::SystemException&)
+    {
+        throw;
+    }
+    catch(const ::IceInternal::LocalExceptionWrapper&)
+    {
+        throw;
+    }
+    catch(const ::std::exception& __ex)
+    {
+        ::IceInternal::LocalExceptionWrapper::throwWrapper(__ex);
+    }
+    catch(...)
+    {
+        throw ::IceInternal::LocalExceptionWrapper(::Ice::UnknownException(__FILE__, __LINE__, "unknown c++ exception"), false);
+    }
+    return __result;
+}
+
+void
+IceDelegateD::Dolan::Music::setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Context* __context)
+{
+    class _DirectI : public ::IceInternal::Direct
+    {
+    public:
+
+        _DirectI(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Current& __current) : 
+            ::IceInternal::Direct(__current),
+            _m_serverId(serverId),
+            _m_volume(volume)
+        {
+        }
+        
+        virtual ::Ice::DispatchStatus
+        run(::Ice::Object* object)
+        {
+            ::Dolan::Music* servant = dynamic_cast< ::Dolan::Music*>(object);
+            if(!servant)
+            {
+                throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
+            }
+            servant->setVolume(_m_serverId, _m_volume, _current);
+            return ::Ice::DispatchOK;
+        }
+        
+    private:
+        
+        ::Ice::Int _m_serverId;
+        ::Ice::Double _m_volume;
+    };
+    
+    ::Ice::Current __current;
+    __initCurrent(__current, __Dolan__Music__setVolume_name, ::Ice::Normal, __context);
+    try
+    {
+        _DirectI __direct(serverId, volume, __current);
+        try
+        {
+            __direct.servant()->__collocDispatch(__direct);
+        }
+        catch(...)
+        {
+            __direct.destroy();
+            throw;
+        }
+        __direct.destroy();
+    }
+    catch(const ::Ice::SystemException&)
+    {
+        throw;
+    }
+    catch(const ::IceInternal::LocalExceptionWrapper&)
+    {
+        throw;
+    }
+    catch(const ::std::exception& __ex)
+    {
+        ::IceInternal::LocalExceptionWrapper::throwWrapper(__ex);
+    }
+    catch(...)
+    {
+        throw ::IceInternal::LocalExceptionWrapper(::Ice::UnknownException(__FILE__, __LINE__, "unknown c++ exception"), false);
+    }
+}
+
+::Ice::Int
+IceDelegateD::Dolan::Server::connect(const ::Dolan::ServerInfo& si, const ::Ice::Context* __context)
+{
+    class _DirectI : public ::IceInternal::Direct
+    {
+    public:
+
+        _DirectI(::Ice::Int& __result, const ::Dolan::ServerInfo& si, const ::Ice::Current& __current) : 
+            ::IceInternal::Direct(__current),
+            _result(__result),
+            _m_si(si)
+        {
+        }
+        
+        virtual ::Ice::DispatchStatus
+        run(::Ice::Object* object)
+        {
+            ::Dolan::Server* servant = dynamic_cast< ::Dolan::Server*>(object);
+            if(!servant)
+            {
+                throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
+            }
+            _result = servant->connect(_m_si, _current);
+            return ::Ice::DispatchOK;
+        }
+        
+    private:
+        
+        ::Ice::Int& _result;
+        const ::Dolan::ServerInfo& _m_si;
+    };
+    
+    ::Ice::Current __current;
+    __initCurrent(__current, __Dolan__Server__connect_name, ::Ice::Normal, __context);
+    ::Ice::Int __result;
+    try
+    {
+        _DirectI __direct(__result, si, __current);
+        try
+        {
+            __direct.servant()->__collocDispatch(__direct);
+        }
+        catch(...)
+        {
+            __direct.destroy();
+            throw;
+        }
+        __direct.destroy();
+    }
+    catch(const ::Ice::SystemException&)
+    {
+        throw;
+    }
+    catch(const ::IceInternal::LocalExceptionWrapper&)
+    {
+        throw;
+    }
+    catch(const ::std::exception& __ex)
+    {
+        ::IceInternal::LocalExceptionWrapper::throwWrapper(__ex);
+    }
+    catch(...)
+    {
+        throw ::IceInternal::LocalExceptionWrapper(::Ice::UnknownException(__FILE__, __LINE__, "unknown c++ exception"), false);
+    }
+    return __result;
+}
+
+::Dolan::ServersInfo
+IceDelegateD::Dolan::Server::getServers(const ::Ice::Context* __context)
+{
+    class _DirectI : public ::IceInternal::Direct
+    {
+    public:
+
+        _DirectI(::Dolan::ServersInfo& __result, const ::Ice::Current& __current) : 
+            ::IceInternal::Direct(__current),
+            _result(__result)
+        {
+        }
+        
+        virtual ::Ice::DispatchStatus
+        run(::Ice::Object* object)
+        {
+            ::Dolan::Server* servant = dynamic_cast< ::Dolan::Server*>(object);
+            if(!servant)
+            {
+                throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
+            }
+            _result = servant->getServers(_current);
+            return ::Ice::DispatchOK;
+        }
+        
+    private:
+        
+        ::Dolan::ServersInfo& _result;
+    };
+    
+    ::Ice::Current __current;
+    __initCurrent(__current, __Dolan__Server__getServers_name, ::Ice::Normal, __context);
+    ::Dolan::ServersInfo __result;
     try
     {
         _DirectI __direct(__result, __current);
@@ -1588,40 +2277,40 @@ IceDelegateD::Dolan::Music::getVolume(const ::Ice::Context* __context)
 }
 
 void
-IceDelegateD::Dolan::Music::setVolume(::Ice::Double volume, const ::Ice::Context* __context)
+IceDelegateD::Dolan::Server::disconnect(::Ice::Int id, const ::Ice::Context* __context)
 {
     class _DirectI : public ::IceInternal::Direct
     {
     public:
 
-        _DirectI(::Ice::Double volume, const ::Ice::Current& __current) : 
+        _DirectI(::Ice::Int id, const ::Ice::Current& __current) : 
             ::IceInternal::Direct(__current),
-            _m_volume(volume)
+            _m_id(id)
         {
         }
         
         virtual ::Ice::DispatchStatus
         run(::Ice::Object* object)
         {
-            ::Dolan::Music* servant = dynamic_cast< ::Dolan::Music*>(object);
+            ::Dolan::Server* servant = dynamic_cast< ::Dolan::Server*>(object);
             if(!servant)
             {
                 throw ::Ice::OperationNotExistException(__FILE__, __LINE__, _current.id, _current.facet, _current.operation);
             }
-            servant->setVolume(_m_volume, _current);
+            servant->disconnect(_m_id, _current);
             return ::Ice::DispatchOK;
         }
         
     private:
         
-        ::Ice::Double _m_volume;
+        ::Ice::Int _m_id;
     };
     
     ::Ice::Current __current;
-    __initCurrent(__current, __Dolan__Music__setVolume_name, ::Ice::Normal, __context);
+    __initCurrent(__current, __Dolan__Server__disconnect_name, ::Ice::Normal, __context);
     try
     {
-        _DirectI __direct(volume, __current);
+        _DirectI __direct(id, __current);
         try
         {
             __direct.servant()->__collocDispatch(__direct);
@@ -1694,10 +2383,12 @@ Dolan::Music::___play(::IceInternal::Incoming& __inS, const ::Ice::Current& __cu
     __checkMode(::Ice::Normal, __current.mode);
     ::IceInternal::BasicStream* __is = __inS.is();
     __is->startReadEncaps();
+    ::Ice::Int serverId;
     ::Dolan::Song s;
+    __is->read(serverId);
     s.__read(__is);
     __is->endReadEncaps();
-    play(s, __current);
+    play(serverId, s, __current);
     return ::Ice::DispatchOK;
 }
 
@@ -1705,9 +2396,13 @@ Dolan::Music::___play(::IceInternal::Incoming& __inS, const ::Ice::Current& __cu
 Dolan::Music::___getCurrentSong(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
 {
     __checkMode(::Ice::Normal, __current.mode);
-    __inS.is()->skipEmptyEncaps();
+    ::IceInternal::BasicStream* __is = __inS.is();
+    __is->startReadEncaps();
+    ::Ice::Int serverId;
+    __is->read(serverId);
+    __is->endReadEncaps();
     ::IceInternal::BasicStream* __os = __inS.os();
-    ::Dolan::Song __ret = getCurrentSong(__current);
+    ::Dolan::Song __ret = getCurrentSong(serverId, __current);
     __ret.__write(__os);
     return ::Ice::DispatchOK;
 }
@@ -1716,8 +2411,12 @@ Dolan::Music::___getCurrentSong(::IceInternal::Incoming& __inS, const ::Ice::Cur
 Dolan::Music::___stop(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
 {
     __checkMode(::Ice::Normal, __current.mode);
-    __inS.is()->skipEmptyEncaps();
-    stop(__current);
+    ::IceInternal::BasicStream* __is = __inS.is();
+    __is->startReadEncaps();
+    ::Ice::Int serverId;
+    __is->read(serverId);
+    __is->endReadEncaps();
+    stop(serverId, __current);
     return ::Ice::DispatchOK;
 }
 
@@ -1727,11 +2426,13 @@ Dolan::Music::___adjustVolume(::IceInternal::Incoming& __inS, const ::Ice::Curre
     __checkMode(::Ice::Normal, __current.mode);
     ::IceInternal::BasicStream* __is = __inS.is();
     __is->startReadEncaps();
+    ::Ice::Int serverId;
     ::Ice::Double delta;
+    __is->read(serverId);
     __is->read(delta);
     __is->endReadEncaps();
     ::IceInternal::BasicStream* __os = __inS.os();
-    ::Ice::Double __ret = adjustVolume(delta, __current);
+    ::Ice::Double __ret = adjustVolume(serverId, delta, __current);
     __os->write(__ret);
     return ::Ice::DispatchOK;
 }
@@ -1740,8 +2441,12 @@ Dolan::Music::___adjustVolume(::IceInternal::Incoming& __inS, const ::Ice::Curre
 Dolan::Music::___replay(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
 {
     __checkMode(::Ice::Normal, __current.mode);
-    __inS.is()->skipEmptyEncaps();
-    replay(__current);
+    ::IceInternal::BasicStream* __is = __inS.is();
+    __is->startReadEncaps();
+    ::Ice::Int serverId;
+    __is->read(serverId);
+    __is->endReadEncaps();
+    replay(serverId, __current);
     return ::Ice::DispatchOK;
 }
 
@@ -1751,12 +2456,14 @@ Dolan::Music::___setEqualizer(::IceInternal::Incoming& __inS, const ::Ice::Curre
     __checkMode(::Ice::Normal, __current.mode);
     ::IceInternal::BasicStream* __is = __inS.is();
     __is->startReadEncaps();
+    ::Ice::Int serverId;
     ::Ice::Int band;
     ::Ice::Double amp;
+    __is->read(serverId);
     __is->read(band);
     __is->read(amp);
     __is->endReadEncaps();
-    setEqualizer(band, amp, __current);
+    setEqualizer(serverId, band, amp, __current);
     return ::Ice::DispatchOK;
 }
 
@@ -1764,8 +2471,12 @@ Dolan::Music::___setEqualizer(::IceInternal::Incoming& __inS, const ::Ice::Curre
 Dolan::Music::___resetEqualizer(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
 {
     __checkMode(::Ice::Normal, __current.mode);
-    __inS.is()->skipEmptyEncaps();
-    resetEqualizer(__current);
+    ::IceInternal::BasicStream* __is = __inS.is();
+    __is->startReadEncaps();
+    ::Ice::Int serverId;
+    __is->read(serverId);
+    __is->endReadEncaps();
+    resetEqualizer(serverId, __current);
     return ::Ice::DispatchOK;
 }
 
@@ -1773,8 +2484,12 @@ Dolan::Music::___resetEqualizer(::IceInternal::Incoming& __inS, const ::Ice::Cur
 Dolan::Music::___clearQueue(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
 {
     __checkMode(::Ice::Normal, __current.mode);
-    __inS.is()->skipEmptyEncaps();
-    clearQueue(__current);
+    ::IceInternal::BasicStream* __is = __inS.is();
+    __is->startReadEncaps();
+    ::Ice::Int serverId;
+    __is->read(serverId);
+    __is->endReadEncaps();
+    clearQueue(serverId, __current);
     return ::Ice::DispatchOK;
 }
 
@@ -1782,9 +2497,13 @@ Dolan::Music::___clearQueue(::IceInternal::Incoming& __inS, const ::Ice::Current
 Dolan::Music::___getVolume(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
 {
     __checkMode(::Ice::Normal, __current.mode);
-    __inS.is()->skipEmptyEncaps();
+    ::IceInternal::BasicStream* __is = __inS.is();
+    __is->startReadEncaps();
+    ::Ice::Int serverId;
+    __is->read(serverId);
+    __is->endReadEncaps();
     ::IceInternal::BasicStream* __os = __inS.os();
-    ::Ice::Double __ret = getVolume(__current);
+    ::Ice::Double __ret = getVolume(serverId, __current);
     __os->write(__ret);
     return ::Ice::DispatchOK;
 }
@@ -1795,10 +2514,12 @@ Dolan::Music::___setVolume(::IceInternal::Incoming& __inS, const ::Ice::Current&
     __checkMode(::Ice::Normal, __current.mode);
     ::IceInternal::BasicStream* __is = __inS.is();
     __is->startReadEncaps();
+    ::Ice::Int serverId;
     ::Ice::Double volume;
+    __is->read(serverId);
     __is->read(volume);
     __is->endReadEncaps();
-    setVolume(volume, __current);
+    setVolume(serverId, volume, __current);
     return ::Ice::DispatchOK;
 }
 
@@ -1951,5 +2672,205 @@ Dolan::__patch__MusicPtr(void* __addr, ::Ice::ObjectPtr& v)
     if(v && !*p)
     {
         IceInternal::Ex::throwUOE(::Dolan::Music::ice_staticId(), v->ice_id());
+    }
+}
+
+::Ice::ObjectPtr
+Dolan::Server::ice_clone() const
+{
+    throw ::Ice::CloneNotImplementedException(__FILE__, __LINE__);
+    return 0; // to avoid a warning with some compilers
+}
+
+static const ::std::string __Dolan__Server_ids[2] =
+{
+    "::Dolan::Server",
+    "::Ice::Object"
+};
+
+bool
+Dolan::Server::ice_isA(const ::std::string& _s, const ::Ice::Current&) const
+{
+    return ::std::binary_search(__Dolan__Server_ids, __Dolan__Server_ids + 2, _s);
+}
+
+::std::vector< ::std::string>
+Dolan::Server::ice_ids(const ::Ice::Current&) const
+{
+    return ::std::vector< ::std::string>(&__Dolan__Server_ids[0], &__Dolan__Server_ids[2]);
+}
+
+const ::std::string&
+Dolan::Server::ice_id(const ::Ice::Current&) const
+{
+    return __Dolan__Server_ids[0];
+}
+
+const ::std::string&
+Dolan::Server::ice_staticId()
+{
+    return __Dolan__Server_ids[0];
+}
+
+::Ice::DispatchStatus
+Dolan::Server::___connect(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
+{
+    __checkMode(::Ice::Normal, __current.mode);
+    ::IceInternal::BasicStream* __is = __inS.is();
+    __is->startReadEncaps();
+    ::Dolan::ServerInfo si;
+    si.__read(__is);
+    __is->endReadEncaps();
+    ::IceInternal::BasicStream* __os = __inS.os();
+    ::Ice::Int __ret = connect(si, __current);
+    __os->write(__ret);
+    return ::Ice::DispatchOK;
+}
+
+::Ice::DispatchStatus
+Dolan::Server::___getServers(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
+{
+    __checkMode(::Ice::Normal, __current.mode);
+    __inS.is()->skipEmptyEncaps();
+    ::IceInternal::BasicStream* __os = __inS.os();
+    ::Dolan::ServersInfo __ret = getServers(__current);
+    if(__ret.size() == 0)
+    {
+        __os->writeSize(0);
+    }
+    else
+    {
+        ::Dolan::__writeServersInfo(__os, &__ret[0], &__ret[0] + __ret.size());
+    }
+    return ::Ice::DispatchOK;
+}
+
+::Ice::DispatchStatus
+Dolan::Server::___disconnect(::IceInternal::Incoming& __inS, const ::Ice::Current& __current)
+{
+    __checkMode(::Ice::Normal, __current.mode);
+    ::IceInternal::BasicStream* __is = __inS.is();
+    __is->startReadEncaps();
+    ::Ice::Int id;
+    __is->read(id);
+    __is->endReadEncaps();
+    disconnect(id, __current);
+    return ::Ice::DispatchOK;
+}
+
+static ::std::string __Dolan__Server_all[] =
+{
+    "connect",
+    "disconnect",
+    "getServers",
+    "ice_id",
+    "ice_ids",
+    "ice_isA",
+    "ice_ping"
+};
+
+::Ice::DispatchStatus
+Dolan::Server::__dispatch(::IceInternal::Incoming& in, const ::Ice::Current& current)
+{
+    ::std::pair< ::std::string*, ::std::string*> r = ::std::equal_range(__Dolan__Server_all, __Dolan__Server_all + 7, current.operation);
+    if(r.first == r.second)
+    {
+        throw ::Ice::OperationNotExistException(__FILE__, __LINE__, current.id, current.facet, current.operation);
+    }
+
+    switch(r.first - __Dolan__Server_all)
+    {
+        case 0:
+        {
+            return ___connect(in, current);
+        }
+        case 1:
+        {
+            return ___disconnect(in, current);
+        }
+        case 2:
+        {
+            return ___getServers(in, current);
+        }
+        case 3:
+        {
+            return ___ice_id(in, current);
+        }
+        case 4:
+        {
+            return ___ice_ids(in, current);
+        }
+        case 5:
+        {
+            return ___ice_isA(in, current);
+        }
+        case 6:
+        {
+            return ___ice_ping(in, current);
+        }
+    }
+
+    assert(false);
+    throw ::Ice::OperationNotExistException(__FILE__, __LINE__, current.id, current.facet, current.operation);
+}
+
+void
+Dolan::Server::__write(::IceInternal::BasicStream* __os) const
+{
+    __os->writeTypeId(ice_staticId());
+    __os->startWriteSlice();
+    __os->endWriteSlice();
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+    Object::__write(__os);
+#else
+    ::Ice::Object::__write(__os);
+#endif
+}
+
+void
+Dolan::Server::__read(::IceInternal::BasicStream* __is, bool __rid)
+{
+    if(__rid)
+    {
+        ::std::string myId;
+        __is->readTypeId(myId);
+    }
+    __is->startReadSlice();
+    __is->endReadSlice();
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+    Object::__read(__is, true);
+#else
+    ::Ice::Object::__read(__is, true);
+#endif
+}
+
+// COMPILERFIX: Stream API is not supported with VC++ 6
+#if !defined(_MSC_VER) || (_MSC_VER >= 1300)
+void
+Dolan::Server::__write(const ::Ice::OutputStreamPtr&) const
+{
+    Ice::MarshalException ex(__FILE__, __LINE__);
+    ex.reason = "type Dolan::Server was not generated with stream support";
+    throw ex;
+}
+
+void
+Dolan::Server::__read(const ::Ice::InputStreamPtr&, bool)
+{
+    Ice::MarshalException ex(__FILE__, __LINE__);
+    ex.reason = "type Dolan::Server was not generated with stream support";
+    throw ex;
+}
+#endif
+
+void 
+Dolan::__patch__ServerPtr(void* __addr, ::Ice::ObjectPtr& v)
+{
+    ::Dolan::ServerPtr* p = static_cast< ::Dolan::ServerPtr*>(__addr);
+    assert(p);
+    *p = ::Dolan::ServerPtr::dynamicCast(v);
+    if(v && !*p)
+    {
+        IceInternal::Ex::throwUOE(::Dolan::Server::ice_staticId(), v->ice_id());
     }
 }

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2013  <copyright holder> <email>
+    Copyright (C) 2013  Mateusz "MaxMati" Nowotynski <maxmati4@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,29 +20,31 @@
 #pragma once
 
 #include <boost/scoped_ptr.hpp>
-#include "music.h"
-
 
 namespace MumbleClient {
 class MumbleClientLib;
-class MumbleClient;
 }
 namespace Dolanik {
-  //class Music;
-  class Dolan
-  {
 
-  public:
-      Dolan();
-      void init();
-      boost::shared_ptr< Music > getMusic();
-      virtual void run();
-      virtual ~Dolan();
-  private:
+class Music;
+class Server;
+class Dolan
+{
+public:
+    Dolan();
+    void init();
+    boost::shared_ptr< Music > getMusic(uint id);
+    uint connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password);
+    void disconnect(int id);
+    virtual void run();
+    virtual ~Dolan();
+    std::map<uint,boost::shared_ptr<Server>> getServers();
+private:
     void onAuth();
     
-    MumbleClient::MumbleClientLib* mumbleClientLib;
-    boost::scoped_ptr<MumbleClient::MumbleClient> mumbleClient;
-    boost::shared_ptr<Music> music; //TODO remove shared_ptr
+    MumbleClient::MumbleClientLib* mumbleClientLib; //TODO: remove singleton
+    std::map<uint,boost::shared_ptr<Server>> servers;//TODO mutexs
+    uint nextId;
+    bool running;
   };
 }

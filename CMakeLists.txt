@@ -1,3 +1,4 @@
+#TODO: Slice2cpp
 project(dolanik)
 cmake_minimum_required (VERSION 2.6)
 
@@ -73,5 +74,5 @@ add_library(dolan ${dolan_SRC})
 target_link_libraries(dolan libmumbleclient mpg123)
 
 add_executable(dolanik ${dolanik_SRC})
-target_link_libraries(dolanik dolan ${ZeroCIceCore_LIBRARY} )
+target_link_libraries(dolanik dolan ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} )
 

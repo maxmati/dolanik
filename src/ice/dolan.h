@@ -57,6 +57,9 @@ namespace Dolan
 class Music;
 ::IceProxy::Ice::Object* upCast(::IceProxy::Dolan::Music*);
 
+class Server;
+::IceProxy::Ice::Object* upCast(::IceProxy::Dolan::Server*);
+
 }
 
 }
@@ -69,6 +72,12 @@ bool operator==(const Music&, const Music&);
 bool operator<(const Music&, const Music&);
 
 ::Ice::Object* upCast(::Dolan::Music*);
+
+class Server;
+bool operator==(const Server&, const Server&);
+bool operator<(const Server&, const Server&);
+
+::Ice::Object* upCast(::Dolan::Server*);
 
 }
 
@@ -85,6 +94,12 @@ typedef ::IceInternal::ProxyHandle< ::IceProxy::Dolan::Music> MusicPrx;
 
 void __read(::IceInternal::BasicStream*, MusicPrx&);
 void __patch__MusicPtr(void*, ::Ice::ObjectPtr&);
+
+typedef ::IceInternal::Handle< ::Dolan::Server> ServerPtr;
+typedef ::IceInternal::ProxyHandle< ::IceProxy::Dolan::Server> ServerPrx;
+
+void __read(::IceInternal::BasicStream*, ServerPrx&);
+void __patch__ServerPtr(void*, ::Ice::ObjectPtr&);
 
 }
 
@@ -185,6 +200,120 @@ struct Song
     void __read(::IceInternal::BasicStream*);
 };
 
+struct ServerInfo
+{
+    ServerInfo();
+    ServerInfo(const ::std::string&, const ::std::string&, const ::std::string&, const ::std::string&, ::Ice::Int);
+
+    ::std::string host;
+    ::std::string port;
+    ::std::string username;
+    ::std::string password;
+    ::Ice::Int id;
+
+    bool operator==(const ServerInfo& __rhs) const
+    {
+        if(this == &__rhs)
+        {
+            return true;
+        }
+        if(host != __rhs.host)
+        {
+            return false;
+        }
+        if(port != __rhs.port)
+        {
+            return false;
+        }
+        if(username != __rhs.username)
+        {
+            return false;
+        }
+        if(password != __rhs.password)
+        {
+            return false;
+        }
+        if(id != __rhs.id)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    bool operator<(const ServerInfo& __rhs) const
+    {
+        if(this == &__rhs)
+        {
+            return false;
+        }
+        if(host < __rhs.host)
+        {
+            return true;
+        }
+        else if(__rhs.host < host)
+        {
+            return false;
+        }
+        if(port < __rhs.port)
+        {
+            return true;
+        }
+        else if(__rhs.port < port)
+        {
+            return false;
+        }
+        if(username < __rhs.username)
+        {
+            return true;
+        }
+        else if(__rhs.username < username)
+        {
+            return false;
+        }
+        if(password < __rhs.password)
+        {
+            return true;
+        }
+        else if(__rhs.password < password)
+        {
+            return false;
+        }
+        if(id < __rhs.id)
+        {
+            return true;
+        }
+        else if(__rhs.id < id)
+        {
+            return false;
+        }
+        return false;
+    }
+
+    bool operator!=(const ServerInfo& __rhs) const
+    {
+        return !operator==(__rhs);
+    }
+    bool operator<=(const ServerInfo& __rhs) const
+    {
+        return operator<(__rhs) || operator==(__rhs);
+    }
+    bool operator>(const ServerInfo& __rhs) const
+    {
+        return !operator<(__rhs) && !operator==(__rhs);
+    }
+    bool operator>=(const ServerInfo& __rhs) const
+    {
+        return !operator<(__rhs);
+    }
+
+    void __write(::IceInternal::BasicStream*) const;
+    void __read(::IceInternal::BasicStream*);
+};
+
+typedef ::std::vector< ::Dolan::ServerInfo> ServersInfo;
+void __writeServersInfo(::IceInternal::BasicStream*, const ::Dolan::ServerInfo*, const ::Dolan::ServerInfo*);
+void __readServersInfo(::IceInternal::BasicStream*, ServersInfo&);
+
 }
 
 namespace Dolan
@@ -220,6 +349,15 @@ typedef ::IceUtil::Handle< Callback_Music_getVolume_Base> Callback_Music_getVolu
 class Callback_Music_setVolume_Base : virtual public ::IceInternal::CallbackBase { };
 typedef ::IceUtil::Handle< Callback_Music_setVolume_Base> Callback_Music_setVolumePtr;
 
+class Callback_Server_connect_Base : virtual public ::IceInternal::CallbackBase { };
+typedef ::IceUtil::Handle< Callback_Server_connect_Base> Callback_Server_connectPtr;
+
+class Callback_Server_getServers_Base : virtual public ::IceInternal::CallbackBase { };
+typedef ::IceUtil::Handle< Callback_Server_getServers_Base> Callback_Server_getServersPtr;
+
+class Callback_Server_disconnect_Base : virtual public ::IceInternal::CallbackBase { };
+typedef ::IceUtil::Handle< Callback_Server_disconnect_Base> Callback_Server_disconnectPtr;
+
 }
 
 namespace IceProxy
@@ -232,483 +370,483 @@ class Music : virtual public ::IceProxy::Ice::Object
 {
 public:
 
-    void play(const ::Dolan::Song& s)
+    void play(::Ice::Int serverId, const ::Dolan::Song& s)
     {
-        play(s, 0);
+        play(serverId, s, 0);
     }
-    void play(const ::Dolan::Song& s, const ::Ice::Context& __ctx)
+    void play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Context& __ctx)
     {
-        play(s, &__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_play(const ::Dolan::Song& s)
-    {
-        return begin_play(s, 0, ::IceInternal::__dummyCallback, 0);
+        play(serverId, s, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_play(const ::Dolan::Song& s, const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_play(::Ice::Int serverId, const ::Dolan::Song& s)
     {
-        return begin_play(s, &__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_play(serverId, s, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_play(const ::Dolan::Song& s, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Context& __ctx)
     {
-        return begin_play(s, 0, __del, __cookie);
+        return begin_play(serverId, s, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_play(const ::Dolan::Song& s, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_play(s, &__ctx, __del, __cookie);
+        return begin_play(serverId, s, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_play(const ::Dolan::Song& s, const ::Dolan::Callback_Music_playPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_play(s, 0, __del, __cookie);
+        return begin_play(serverId, s, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_play(const ::Dolan::Song& s, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_playPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Dolan::Callback_Music_playPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_play(s, &__ctx, __del, __cookie);
+        return begin_play(serverId, s, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_play(::Ice::Int serverId, const ::Dolan::Song& s, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_playPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_play(serverId, s, &__ctx, __del, __cookie);
     }
 
     void end_play(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    void play(const ::Dolan::Song&, const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_play(const ::Dolan::Song&, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    void play(::Ice::Int, const ::Dolan::Song&, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_play(::Ice::Int, const ::Dolan::Song&, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    ::Dolan::Song getCurrentSong()
+    ::Dolan::Song getCurrentSong(::Ice::Int serverId)
     {
-        return getCurrentSong(0);
+        return getCurrentSong(serverId, 0);
     }
-    ::Dolan::Song getCurrentSong(const ::Ice::Context& __ctx)
+    ::Dolan::Song getCurrentSong(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        return getCurrentSong(&__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_getCurrentSong()
-    {
-        return begin_getCurrentSong(0, ::IceInternal::__dummyCallback, 0);
+        return getCurrentSong(serverId, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_getCurrentSong(const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_getCurrentSong(::Ice::Int serverId)
     {
-        return begin_getCurrentSong(&__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_getCurrentSong(serverId, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_getCurrentSong(const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_getCurrentSong(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        return begin_getCurrentSong(0, __del, __cookie);
+        return begin_getCurrentSong(serverId, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_getCurrentSong(const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_getCurrentSong(::Ice::Int serverId, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_getCurrentSong(&__ctx, __del, __cookie);
+        return begin_getCurrentSong(serverId, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_getCurrentSong(const ::Dolan::Callback_Music_getCurrentSongPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_getCurrentSong(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_getCurrentSong(0, __del, __cookie);
+        return begin_getCurrentSong(serverId, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_getCurrentSong(const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_getCurrentSongPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_getCurrentSong(::Ice::Int serverId, const ::Dolan::Callback_Music_getCurrentSongPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_getCurrentSong(&__ctx, __del, __cookie);
+        return begin_getCurrentSong(serverId, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_getCurrentSong(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_getCurrentSongPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_getCurrentSong(serverId, &__ctx, __del, __cookie);
     }
 
     ::Dolan::Song end_getCurrentSong(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    ::Dolan::Song getCurrentSong(const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_getCurrentSong(const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    ::Dolan::Song getCurrentSong(::Ice::Int, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_getCurrentSong(::Ice::Int, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    void stop()
+    void stop(::Ice::Int serverId)
     {
-        stop(0);
+        stop(serverId, 0);
     }
-    void stop(const ::Ice::Context& __ctx)
+    void stop(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        stop(&__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_stop()
-    {
-        return begin_stop(0, ::IceInternal::__dummyCallback, 0);
+        stop(serverId, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_stop(const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_stop(::Ice::Int serverId)
     {
-        return begin_stop(&__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_stop(serverId, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_stop(const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_stop(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        return begin_stop(0, __del, __cookie);
+        return begin_stop(serverId, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_stop(const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_stop(::Ice::Int serverId, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_stop(&__ctx, __del, __cookie);
+        return begin_stop(serverId, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_stop(const ::Dolan::Callback_Music_stopPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_stop(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_stop(0, __del, __cookie);
+        return begin_stop(serverId, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_stop(const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_stopPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_stop(::Ice::Int serverId, const ::Dolan::Callback_Music_stopPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_stop(&__ctx, __del, __cookie);
+        return begin_stop(serverId, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_stop(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_stopPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_stop(serverId, &__ctx, __del, __cookie);
     }
 
     void end_stop(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    void stop(const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_stop(const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    void stop(::Ice::Int, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_stop(::Ice::Int, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    ::Ice::Double adjustVolume(::Ice::Double delta)
+    ::Ice::Double adjustVolume(::Ice::Int serverId, ::Ice::Double delta)
     {
-        return adjustVolume(delta, 0);
+        return adjustVolume(serverId, delta, 0);
     }
-    ::Ice::Double adjustVolume(::Ice::Double delta, const ::Ice::Context& __ctx)
+    ::Ice::Double adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Context& __ctx)
     {
-        return adjustVolume(delta, &__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Double delta)
-    {
-        return begin_adjustVolume(delta, 0, ::IceInternal::__dummyCallback, 0);
+        return adjustVolume(serverId, delta, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Double delta, const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Int serverId, ::Ice::Double delta)
     {
-        return begin_adjustVolume(delta, &__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_adjustVolume(serverId, delta, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Double delta, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Context& __ctx)
     {
-        return begin_adjustVolume(delta, 0, __del, __cookie);
+        return begin_adjustVolume(serverId, delta, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Double delta, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_adjustVolume(delta, &__ctx, __del, __cookie);
+        return begin_adjustVolume(serverId, delta, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Double delta, const ::Dolan::Callback_Music_adjustVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_adjustVolume(delta, 0, __del, __cookie);
+        return begin_adjustVolume(serverId, delta, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Double delta, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_adjustVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Dolan::Callback_Music_adjustVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_adjustVolume(delta, &__ctx, __del, __cookie);
+        return begin_adjustVolume(serverId, delta, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Int serverId, ::Ice::Double delta, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_adjustVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_adjustVolume(serverId, delta, &__ctx, __del, __cookie);
     }
 
     ::Ice::Double end_adjustVolume(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    ::Ice::Double adjustVolume(::Ice::Double, const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Double, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    ::Ice::Double adjustVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_adjustVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    void replay()
+    void replay(::Ice::Int serverId)
     {
-        replay(0);
+        replay(serverId, 0);
     }
-    void replay(const ::Ice::Context& __ctx)
+    void replay(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        replay(&__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_replay()
-    {
-        return begin_replay(0, ::IceInternal::__dummyCallback, 0);
+        replay(serverId, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_replay(const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_replay(::Ice::Int serverId)
     {
-        return begin_replay(&__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_replay(serverId, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_replay(const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_replay(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        return begin_replay(0, __del, __cookie);
+        return begin_replay(serverId, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_replay(const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_replay(::Ice::Int serverId, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_replay(&__ctx, __del, __cookie);
+        return begin_replay(serverId, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_replay(const ::Dolan::Callback_Music_replayPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_replay(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_replay(0, __del, __cookie);
+        return begin_replay(serverId, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_replay(const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_replayPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_replay(::Ice::Int serverId, const ::Dolan::Callback_Music_replayPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_replay(&__ctx, __del, __cookie);
+        return begin_replay(serverId, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_replay(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_replayPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_replay(serverId, &__ctx, __del, __cookie);
     }
 
     void end_replay(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    void replay(const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_replay(const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    void replay(::Ice::Int, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_replay(::Ice::Int, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    void setEqualizer(::Ice::Int band, ::Ice::Double amp)
+    void setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp)
     {
-        setEqualizer(band, amp, 0);
+        setEqualizer(serverId, band, amp, 0);
     }
-    void setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::Context& __ctx)
+    void setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Context& __ctx)
     {
-        setEqualizer(band, amp, &__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int band, ::Ice::Double amp)
-    {
-        return begin_setEqualizer(band, amp, 0, ::IceInternal::__dummyCallback, 0);
+        setEqualizer(serverId, band, amp, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp)
     {
-        return begin_setEqualizer(band, amp, &__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_setEqualizer(serverId, band, amp, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Context& __ctx)
     {
-        return begin_setEqualizer(band, amp, 0, __del, __cookie);
+        return begin_setEqualizer(serverId, band, amp, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_setEqualizer(band, amp, &__ctx, __del, __cookie);
+        return begin_setEqualizer(serverId, band, amp, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Dolan::Callback_Music_setEqualizerPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_setEqualizer(band, amp, 0, __del, __cookie);
+        return begin_setEqualizer(serverId, band, amp, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int band, ::Ice::Double amp, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_setEqualizerPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Dolan::Callback_Music_setEqualizerPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_setEqualizer(band, amp, &__ctx, __del, __cookie);
+        return begin_setEqualizer(serverId, band, amp, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int serverId, ::Ice::Int band, ::Ice::Double amp, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_setEqualizerPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_setEqualizer(serverId, band, amp, &__ctx, __del, __cookie);
     }
 
     void end_setEqualizer(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    void setEqualizer(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int, ::Ice::Double, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    void setEqualizer(::Ice::Int, ::Ice::Int, ::Ice::Double, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_setEqualizer(::Ice::Int, ::Ice::Int, ::Ice::Double, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    void resetEqualizer()
+    void resetEqualizer(::Ice::Int serverId)
     {
-        resetEqualizer(0);
+        resetEqualizer(serverId, 0);
     }
-    void resetEqualizer(const ::Ice::Context& __ctx)
+    void resetEqualizer(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        resetEqualizer(&__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_resetEqualizer()
-    {
-        return begin_resetEqualizer(0, ::IceInternal::__dummyCallback, 0);
+        resetEqualizer(serverId, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_resetEqualizer(const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_resetEqualizer(::Ice::Int serverId)
     {
-        return begin_resetEqualizer(&__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_resetEqualizer(serverId, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_resetEqualizer(const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_resetEqualizer(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        return begin_resetEqualizer(0, __del, __cookie);
+        return begin_resetEqualizer(serverId, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_resetEqualizer(const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_resetEqualizer(::Ice::Int serverId, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_resetEqualizer(&__ctx, __del, __cookie);
+        return begin_resetEqualizer(serverId, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_resetEqualizer(const ::Dolan::Callback_Music_resetEqualizerPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_resetEqualizer(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_resetEqualizer(0, __del, __cookie);
+        return begin_resetEqualizer(serverId, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_resetEqualizer(const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_resetEqualizerPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_resetEqualizer(::Ice::Int serverId, const ::Dolan::Callback_Music_resetEqualizerPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_resetEqualizer(&__ctx, __del, __cookie);
+        return begin_resetEqualizer(serverId, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_resetEqualizer(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_resetEqualizerPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_resetEqualizer(serverId, &__ctx, __del, __cookie);
     }
 
     void end_resetEqualizer(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    void resetEqualizer(const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_resetEqualizer(const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    void resetEqualizer(::Ice::Int, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_resetEqualizer(::Ice::Int, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    void clearQueue()
+    void clearQueue(::Ice::Int serverId)
     {
-        clearQueue(0);
+        clearQueue(serverId, 0);
     }
-    void clearQueue(const ::Ice::Context& __ctx)
+    void clearQueue(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        clearQueue(&__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_clearQueue()
-    {
-        return begin_clearQueue(0, ::IceInternal::__dummyCallback, 0);
+        clearQueue(serverId, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_clearQueue(const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_clearQueue(::Ice::Int serverId)
     {
-        return begin_clearQueue(&__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_clearQueue(serverId, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_clearQueue(const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_clearQueue(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        return begin_clearQueue(0, __del, __cookie);
+        return begin_clearQueue(serverId, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_clearQueue(const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_clearQueue(::Ice::Int serverId, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_clearQueue(&__ctx, __del, __cookie);
+        return begin_clearQueue(serverId, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_clearQueue(const ::Dolan::Callback_Music_clearQueuePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_clearQueue(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_clearQueue(0, __del, __cookie);
+        return begin_clearQueue(serverId, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_clearQueue(const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_clearQueuePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_clearQueue(::Ice::Int serverId, const ::Dolan::Callback_Music_clearQueuePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_clearQueue(&__ctx, __del, __cookie);
+        return begin_clearQueue(serverId, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_clearQueue(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_clearQueuePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_clearQueue(serverId, &__ctx, __del, __cookie);
     }
 
     void end_clearQueue(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    void clearQueue(const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_clearQueue(const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    void clearQueue(::Ice::Int, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_clearQueue(::Ice::Int, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    ::Ice::Double getVolume()
+    ::Ice::Double getVolume(::Ice::Int serverId)
     {
-        return getVolume(0);
+        return getVolume(serverId, 0);
     }
-    ::Ice::Double getVolume(const ::Ice::Context& __ctx)
+    ::Ice::Double getVolume(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        return getVolume(&__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_getVolume()
-    {
-        return begin_getVolume(0, ::IceInternal::__dummyCallback, 0);
+        return getVolume(serverId, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_getVolume(const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_getVolume(::Ice::Int serverId)
     {
-        return begin_getVolume(&__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_getVolume(serverId, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_getVolume(const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_getVolume(::Ice::Int serverId, const ::Ice::Context& __ctx)
     {
-        return begin_getVolume(0, __del, __cookie);
+        return begin_getVolume(serverId, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_getVolume(const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_getVolume(::Ice::Int serverId, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_getVolume(&__ctx, __del, __cookie);
+        return begin_getVolume(serverId, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_getVolume(const ::Dolan::Callback_Music_getVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_getVolume(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_getVolume(0, __del, __cookie);
+        return begin_getVolume(serverId, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_getVolume(const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_getVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_getVolume(::Ice::Int serverId, const ::Dolan::Callback_Music_getVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_getVolume(&__ctx, __del, __cookie);
+        return begin_getVolume(serverId, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_getVolume(::Ice::Int serverId, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_getVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_getVolume(serverId, &__ctx, __del, __cookie);
     }
 
     ::Ice::Double end_getVolume(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    ::Ice::Double getVolume(const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_getVolume(const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    ::Ice::Double getVolume(::Ice::Int, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_getVolume(::Ice::Int, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
 
-    void setVolume(::Ice::Double volume)
+    void setVolume(::Ice::Int serverId, ::Ice::Double volume)
     {
-        setVolume(volume, 0);
+        setVolume(serverId, volume, 0);
     }
-    void setVolume(::Ice::Double volume, const ::Ice::Context& __ctx)
+    void setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Context& __ctx)
     {
-        setVolume(volume, &__ctx);
-    }
-
-    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Double volume)
-    {
-        return begin_setVolume(volume, 0, ::IceInternal::__dummyCallback, 0);
+        setVolume(serverId, volume, &__ctx);
     }
 
-    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Double volume, const ::Ice::Context& __ctx)
+    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Int serverId, ::Ice::Double volume)
     {
-        return begin_setVolume(volume, &__ctx, ::IceInternal::__dummyCallback, 0);
+        return begin_setVolume(serverId, volume, 0, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Double volume, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Context& __ctx)
     {
-        return begin_setVolume(volume, 0, __del, __cookie);
+        return begin_setVolume(serverId, volume, &__ctx, ::IceInternal::__dummyCallback, 0);
     }
 
-    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Double volume, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_setVolume(volume, &__ctx, __del, __cookie);
+        return begin_setVolume(serverId, volume, 0, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Double volume, const ::Dolan::Callback_Music_setVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_setVolume(volume, 0, __del, __cookie);
+        return begin_setVolume(serverId, volume, &__ctx, __del, __cookie);
     }
 
-    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Double volume, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_setVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Dolan::Callback_Music_setVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
     {
-        return begin_setVolume(volume, &__ctx, __del, __cookie);
+        return begin_setVolume(serverId, volume, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Int serverId, ::Ice::Double volume, const ::Ice::Context& __ctx, const ::Dolan::Callback_Music_setVolumePtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_setVolume(serverId, volume, &__ctx, __del, __cookie);
     }
 
     void end_setVolume(const ::Ice::AsyncResultPtr&);
     
 private:
 
-    void setVolume(::Ice::Double, const ::Ice::Context*);
-    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Double, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    void setVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_setVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
     
 public:
     
@@ -911,6 +1049,353 @@ private:
     virtual ::IceProxy::Ice::Object* __newInstance() const;
 };
 
+class Server : virtual public ::IceProxy::Ice::Object
+{
+public:
+
+    ::Ice::Int connect(const ::Dolan::ServerInfo& si)
+    {
+        return connect(si, 0);
+    }
+    ::Ice::Int connect(const ::Dolan::ServerInfo& si, const ::Ice::Context& __ctx)
+    {
+        return connect(si, &__ctx);
+    }
+
+    ::Ice::AsyncResultPtr begin_connect(const ::Dolan::ServerInfo& si)
+    {
+        return begin_connect(si, 0, ::IceInternal::__dummyCallback, 0);
+    }
+
+    ::Ice::AsyncResultPtr begin_connect(const ::Dolan::ServerInfo& si, const ::Ice::Context& __ctx)
+    {
+        return begin_connect(si, &__ctx, ::IceInternal::__dummyCallback, 0);
+    }
+
+    ::Ice::AsyncResultPtr begin_connect(const ::Dolan::ServerInfo& si, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_connect(si, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_connect(const ::Dolan::ServerInfo& si, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_connect(si, &__ctx, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_connect(const ::Dolan::ServerInfo& si, const ::Dolan::Callback_Server_connectPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_connect(si, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_connect(const ::Dolan::ServerInfo& si, const ::Ice::Context& __ctx, const ::Dolan::Callback_Server_connectPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_connect(si, &__ctx, __del, __cookie);
+    }
+
+    ::Ice::Int end_connect(const ::Ice::AsyncResultPtr&);
+    
+private:
+
+    ::Ice::Int connect(const ::Dolan::ServerInfo&, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_connect(const ::Dolan::ServerInfo&, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    
+public:
+
+    ::Dolan::ServersInfo getServers()
+    {
+        return getServers(0);
+    }
+    ::Dolan::ServersInfo getServers(const ::Ice::Context& __ctx)
+    {
+        return getServers(&__ctx);
+    }
+
+    ::Ice::AsyncResultPtr begin_getServers()
+    {
+        return begin_getServers(0, ::IceInternal::__dummyCallback, 0);
+    }
+
+    ::Ice::AsyncResultPtr begin_getServers(const ::Ice::Context& __ctx)
+    {
+        return begin_getServers(&__ctx, ::IceInternal::__dummyCallback, 0);
+    }
+
+    ::Ice::AsyncResultPtr begin_getServers(const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_getServers(0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_getServers(const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_getServers(&__ctx, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_getServers(const ::Dolan::Callback_Server_getServersPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_getServers(0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_getServers(const ::Ice::Context& __ctx, const ::Dolan::Callback_Server_getServersPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_getServers(&__ctx, __del, __cookie);
+    }
+
+    ::Dolan::ServersInfo end_getServers(const ::Ice::AsyncResultPtr&);
+    
+private:
+
+    ::Dolan::ServersInfo getServers(const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_getServers(const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    
+public:
+
+    void disconnect(::Ice::Int id)
+    {
+        disconnect(id, 0);
+    }
+    void disconnect(::Ice::Int id, const ::Ice::Context& __ctx)
+    {
+        disconnect(id, &__ctx);
+    }
+
+    ::Ice::AsyncResultPtr begin_disconnect(::Ice::Int id)
+    {
+        return begin_disconnect(id, 0, ::IceInternal::__dummyCallback, 0);
+    }
+
+    ::Ice::AsyncResultPtr begin_disconnect(::Ice::Int id, const ::Ice::Context& __ctx)
+    {
+        return begin_disconnect(id, &__ctx, ::IceInternal::__dummyCallback, 0);
+    }
+
+    ::Ice::AsyncResultPtr begin_disconnect(::Ice::Int id, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_disconnect(id, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_disconnect(::Ice::Int id, const ::Ice::Context& __ctx, const ::Ice::CallbackPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_disconnect(id, &__ctx, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_disconnect(::Ice::Int id, const ::Dolan::Callback_Server_disconnectPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_disconnect(id, 0, __del, __cookie);
+    }
+
+    ::Ice::AsyncResultPtr begin_disconnect(::Ice::Int id, const ::Ice::Context& __ctx, const ::Dolan::Callback_Server_disconnectPtr& __del, const ::Ice::LocalObjectPtr& __cookie = 0)
+    {
+        return begin_disconnect(id, &__ctx, __del, __cookie);
+    }
+
+    void end_disconnect(const ::Ice::AsyncResultPtr&);
+    
+private:
+
+    void disconnect(::Ice::Int, const ::Ice::Context*);
+    ::Ice::AsyncResultPtr begin_disconnect(::Ice::Int, const ::Ice::Context*, const ::IceInternal::CallbackBasePtr&, const ::Ice::LocalObjectPtr& __cookie = 0);
+    
+public:
+    
+    ::IceInternal::ProxyHandle<Server> ice_context(const ::Ice::Context& __context) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_context(__context).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_context(__context).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_adapterId(const std::string& __id) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_adapterId(__id).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_adapterId(__id).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_endpoints(const ::Ice::EndpointSeq& __endpoints) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_endpoints(__endpoints).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_endpoints(__endpoints).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_locatorCacheTimeout(int __timeout) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_locatorCacheTimeout(__timeout).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_locatorCacheTimeout(__timeout).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_connectionCached(bool __cached) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_connectionCached(__cached).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_connectionCached(__cached).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_endpointSelection(::Ice::EndpointSelectionType __est) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_endpointSelection(__est).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_endpointSelection(__est).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_secure(bool __secure) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_secure(__secure).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_secure(__secure).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_preferSecure(bool __preferSecure) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_preferSecure(__preferSecure).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_preferSecure(__preferSecure).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_router(const ::Ice::RouterPrx& __router) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_router(__router).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_router(__router).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_locator(const ::Ice::LocatorPrx& __locator) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_locator(__locator).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_locator(__locator).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_collocationOptimized(bool __co) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_collocationOptimized(__co).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_collocationOptimized(__co).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_twoway() const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_twoway().get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_twoway().get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_oneway() const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_oneway().get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_oneway().get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_batchOneway() const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_batchOneway().get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_batchOneway().get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_datagram() const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_datagram().get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_datagram().get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_batchDatagram() const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_batchDatagram().get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_batchDatagram().get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_compress(bool __compress) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_compress(__compress).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_compress(__compress).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_timeout(int __timeout) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_timeout(__timeout).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_timeout(__timeout).get());
+    #endif
+    }
+    
+    ::IceInternal::ProxyHandle<Server> ice_connectionId(const std::string& __id) const
+    {
+    #if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+        typedef ::IceProxy::Ice::Object _Base;
+        return dynamic_cast<Server*>(_Base::ice_connectionId(__id).get());
+    #else
+        return dynamic_cast<Server*>(::IceProxy::Ice::Object::ice_connectionId(__id).get());
+    #endif
+    }
+    
+    static const ::std::string& ice_staticId();
+
+private: 
+
+    virtual ::IceInternal::Handle< ::IceDelegateM::Ice::Object> __createDelegateM();
+    virtual ::IceInternal::Handle< ::IceDelegateD::Ice::Object> __createDelegateD();
+    virtual ::IceProxy::Ice::Object* __newInstance() const;
+};
+
 }
 
 }
@@ -925,25 +1410,36 @@ class Music : virtual public ::IceDelegate::Ice::Object
 {
 public:
 
-    virtual void play(const ::Dolan::Song&, const ::Ice::Context*) = 0;
+    virtual void play(::Ice::Int, const ::Dolan::Song&, const ::Ice::Context*) = 0;
 
-    virtual ::Dolan::Song getCurrentSong(const ::Ice::Context*) = 0;
+    virtual ::Dolan::Song getCurrentSong(::Ice::Int, const ::Ice::Context*) = 0;
 
-    virtual void stop(const ::Ice::Context*) = 0;
+    virtual void stop(::Ice::Int, const ::Ice::Context*) = 0;
 
-    virtual ::Ice::Double adjustVolume(::Ice::Double, const ::Ice::Context*) = 0;
+    virtual ::Ice::Double adjustVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*) = 0;
 
-    virtual void replay(const ::Ice::Context*) = 0;
+    virtual void replay(::Ice::Int, const ::Ice::Context*) = 0;
 
-    virtual void setEqualizer(::Ice::Int, ::Ice::Double, const ::Ice::Context*) = 0;
+    virtual void setEqualizer(::Ice::Int, ::Ice::Int, ::Ice::Double, const ::Ice::Context*) = 0;
 
-    virtual void resetEqualizer(const ::Ice::Context*) = 0;
+    virtual void resetEqualizer(::Ice::Int, const ::Ice::Context*) = 0;
 
-    virtual void clearQueue(const ::Ice::Context*) = 0;
+    virtual void clearQueue(::Ice::Int, const ::Ice::Context*) = 0;
 
-    virtual ::Ice::Double getVolume(const ::Ice::Context*) = 0;
+    virtual ::Ice::Double getVolume(::Ice::Int, const ::Ice::Context*) = 0;
 
-    virtual void setVolume(::Ice::Double, const ::Ice::Context*) = 0;
+    virtual void setVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*) = 0;
+};
+
+class Server : virtual public ::IceDelegate::Ice::Object
+{
+public:
+
+    virtual ::Ice::Int connect(const ::Dolan::ServerInfo&, const ::Ice::Context*) = 0;
+
+    virtual ::Dolan::ServersInfo getServers(const ::Ice::Context*) = 0;
+
+    virtual void disconnect(::Ice::Int, const ::Ice::Context*) = 0;
 };
 
 }
@@ -961,25 +1457,37 @@ class Music : virtual public ::IceDelegate::Dolan::Music,
 {
 public:
 
-    virtual void play(const ::Dolan::Song&, const ::Ice::Context*);
+    virtual void play(::Ice::Int, const ::Dolan::Song&, const ::Ice::Context*);
 
-    virtual ::Dolan::Song getCurrentSong(const ::Ice::Context*);
+    virtual ::Dolan::Song getCurrentSong(::Ice::Int, const ::Ice::Context*);
 
-    virtual void stop(const ::Ice::Context*);
+    virtual void stop(::Ice::Int, const ::Ice::Context*);
 
-    virtual ::Ice::Double adjustVolume(::Ice::Double, const ::Ice::Context*);
+    virtual ::Ice::Double adjustVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
 
-    virtual void replay(const ::Ice::Context*);
+    virtual void replay(::Ice::Int, const ::Ice::Context*);
 
-    virtual void setEqualizer(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
+    virtual void setEqualizer(::Ice::Int, ::Ice::Int, ::Ice::Double, const ::Ice::Context*);
 
-    virtual void resetEqualizer(const ::Ice::Context*);
+    virtual void resetEqualizer(::Ice::Int, const ::Ice::Context*);
 
-    virtual void clearQueue(const ::Ice::Context*);
+    virtual void clearQueue(::Ice::Int, const ::Ice::Context*);
 
-    virtual ::Ice::Double getVolume(const ::Ice::Context*);
+    virtual ::Ice::Double getVolume(::Ice::Int, const ::Ice::Context*);
 
-    virtual void setVolume(::Ice::Double, const ::Ice::Context*);
+    virtual void setVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
+};
+
+class Server : virtual public ::IceDelegate::Dolan::Server,
+               virtual public ::IceDelegateM::Ice::Object
+{
+public:
+
+    virtual ::Ice::Int connect(const ::Dolan::ServerInfo&, const ::Ice::Context*);
+
+    virtual ::Dolan::ServersInfo getServers(const ::Ice::Context*);
+
+    virtual void disconnect(::Ice::Int, const ::Ice::Context*);
 };
 
 }
@@ -997,25 +1505,37 @@ class Music : virtual public ::IceDelegate::Dolan::Music,
 {
 public:
 
-    virtual void play(const ::Dolan::Song&, const ::Ice::Context*);
+    virtual void play(::Ice::Int, const ::Dolan::Song&, const ::Ice::Context*);
 
-    virtual ::Dolan::Song getCurrentSong(const ::Ice::Context*);
+    virtual ::Dolan::Song getCurrentSong(::Ice::Int, const ::Ice::Context*);
 
-    virtual void stop(const ::Ice::Context*);
+    virtual void stop(::Ice::Int, const ::Ice::Context*);
 
-    virtual ::Ice::Double adjustVolume(::Ice::Double, const ::Ice::Context*);
+    virtual ::Ice::Double adjustVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
 
-    virtual void replay(const ::Ice::Context*);
+    virtual void replay(::Ice::Int, const ::Ice::Context*);
 
-    virtual void setEqualizer(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
+    virtual void setEqualizer(::Ice::Int, ::Ice::Int, ::Ice::Double, const ::Ice::Context*);
 
-    virtual void resetEqualizer(const ::Ice::Context*);
+    virtual void resetEqualizer(::Ice::Int, const ::Ice::Context*);
 
-    virtual void clearQueue(const ::Ice::Context*);
+    virtual void clearQueue(::Ice::Int, const ::Ice::Context*);
 
-    virtual ::Ice::Double getVolume(const ::Ice::Context*);
+    virtual ::Ice::Double getVolume(::Ice::Int, const ::Ice::Context*);
 
-    virtual void setVolume(::Ice::Double, const ::Ice::Context*);
+    virtual void setVolume(::Ice::Int, ::Ice::Double, const ::Ice::Context*);
+};
+
+class Server : virtual public ::IceDelegate::Dolan::Server,
+               virtual public ::IceDelegateD::Ice::Object
+{
+public:
+
+    virtual ::Ice::Int connect(const ::Dolan::ServerInfo&, const ::Ice::Context*);
+
+    virtual ::Dolan::ServersInfo getServers(const ::Ice::Context*);
+
+    virtual void disconnect(::Ice::Int, const ::Ice::Context*);
 };
 
 }
@@ -1039,34 +1559,34 @@ public:
     virtual const ::std::string& ice_id(const ::Ice::Current& = ::Ice::Current()) const;
     static const ::std::string& ice_staticId();
 
-    virtual void play(const ::Dolan::Song&, const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual void play(::Ice::Int, const ::Dolan::Song&, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___play(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual ::Dolan::Song getCurrentSong(const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual ::Dolan::Song getCurrentSong(::Ice::Int, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___getCurrentSong(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual void stop(const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual void stop(::Ice::Int, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___stop(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual ::Ice::Double adjustVolume(::Ice::Double, const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual ::Ice::Double adjustVolume(::Ice::Int, ::Ice::Double, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___adjustVolume(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual void replay(const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual void replay(::Ice::Int, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___replay(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual void setEqualizer(::Ice::Int, ::Ice::Double, const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual void setEqualizer(::Ice::Int, ::Ice::Int, ::Ice::Double, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___setEqualizer(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual void resetEqualizer(const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual void resetEqualizer(::Ice::Int, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___resetEqualizer(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual void clearQueue(const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual void clearQueue(::Ice::Int, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___clearQueue(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual ::Ice::Double getVolume(const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual ::Ice::Double getVolume(::Ice::Int, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___getVolume(::IceInternal::Incoming&, const ::Ice::Current&);
 
-    virtual void setVolume(::Ice::Double, const ::Ice::Current& = ::Ice::Current()) = 0;
+    virtual void setVolume(::Ice::Int, ::Ice::Double, const ::Ice::Current& = ::Ice::Current()) = 0;
     ::Ice::DispatchStatus ___setVolume(::IceInternal::Incoming&, const ::Ice::Current&);
 
     virtual ::Ice::DispatchStatus __dispatch(::IceInternal::Incoming&, const ::Ice::Current&);
@@ -1086,6 +1606,50 @@ inline bool operator==(const Music& l, const Music& r)
 }
 
 inline bool operator<(const Music& l, const Music& r)
+{
+    return static_cast<const ::Ice::Object&>(l) < static_cast<const ::Ice::Object&>(r);
+}
+
+class Server : virtual public ::Ice::Object
+{
+public:
+
+    typedef ServerPrx ProxyType;
+    typedef ServerPtr PointerType;
+    
+    virtual ::Ice::ObjectPtr ice_clone() const;
+
+    virtual bool ice_isA(const ::std::string&, const ::Ice::Current& = ::Ice::Current()) const;
+    virtual ::std::vector< ::std::string> ice_ids(const ::Ice::Current& = ::Ice::Current()) const;
+    virtual const ::std::string& ice_id(const ::Ice::Current& = ::Ice::Current()) const;
+    static const ::std::string& ice_staticId();
+
+    virtual ::Ice::Int connect(const ::Dolan::ServerInfo&, const ::Ice::Current& = ::Ice::Current()) = 0;
+    ::Ice::DispatchStatus ___connect(::IceInternal::Incoming&, const ::Ice::Current&);
+
+    virtual ::Dolan::ServersInfo getServers(const ::Ice::Current& = ::Ice::Current()) = 0;
+    ::Ice::DispatchStatus ___getServers(::IceInternal::Incoming&, const ::Ice::Current&);
+
+    virtual void disconnect(::Ice::Int, const ::Ice::Current& = ::Ice::Current()) = 0;
+    ::Ice::DispatchStatus ___disconnect(::IceInternal::Incoming&, const ::Ice::Current&);
+
+    virtual ::Ice::DispatchStatus __dispatch(::IceInternal::Incoming&, const ::Ice::Current&);
+
+    virtual void __write(::IceInternal::BasicStream*) const;
+    virtual void __read(::IceInternal::BasicStream*, bool);
+// COMPILERFIX: Stream API is not supported with VC++ 6
+#if !defined(_MSC_VER) || (_MSC_VER >= 1300)
+    virtual void __write(const ::Ice::OutputStreamPtr&) const;
+    virtual void __read(const ::Ice::InputStreamPtr&, bool);
+#endif
+};
+
+inline bool operator==(const Server& l, const Server& r)
+{
+    return static_cast<const ::Ice::Object&>(l) == static_cast<const ::Ice::Object&>(r);
+}
+
+inline bool operator<(const Server& l, const Server& r)
 {
     return static_cast<const ::Ice::Object&>(l) < static_cast<const ::Ice::Object&>(r);
 }
@@ -2015,6 +2579,320 @@ template<class T, typename CT> Callback_Music_setVolumePtr
 newCallback_Music_setVolume(T* instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
 {
     return new Callback_Music_setVolume<T, CT>(instance, 0, excb, sentcb);
+}
+
+template<class T>
+class CallbackNC_Server_connect : public Callback_Server_connect_Base, public ::IceInternal::TwowayCallbackNC<T>
+{
+public:
+
+    typedef IceUtil::Handle<T> TPtr;
+
+    typedef void (T::*Exception)(const ::Ice::Exception&);
+    typedef void (T::*Sent)(bool);
+    typedef void (T::*Response)(::Ice::Int);
+
+    CallbackNC_Server_connect(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+        : ::IceInternal::TwowayCallbackNC<T>(obj, cb != 0, excb, sentcb), response(cb)
+    {
+    }
+
+    virtual void __completed(const ::Ice::AsyncResultPtr& __result) const
+    {
+        ::Dolan::ServerPrx __proxy = ::Dolan::ServerPrx::uncheckedCast(__result->getProxy());
+        ::Ice::Int __ret;
+        try
+        {
+            __ret = __proxy->end_connect(__result);
+        }
+        catch(::Ice::Exception& ex)
+        {
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+            __exception(__result, ex);
+#else
+            ::IceInternal::CallbackNC<T>::__exception(__result, ex);
+#endif
+            return;
+        }
+        if(response)
+        {
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+            (callback.get()->*response)(__ret);
+#else
+            (::IceInternal::CallbackNC<T>::callback.get()->*response)(__ret);
+#endif
+        }
+    }
+
+    Response response;
+};
+
+template<class T> Callback_Server_connectPtr
+newCallback_Server_connect(const IceUtil::Handle<T>& instance, void (T::*cb)(::Ice::Int), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_Server_connect<T>(instance, cb, excb, sentcb);
+}
+
+template<class T> Callback_Server_connectPtr
+newCallback_Server_connect(T* instance, void (T::*cb)(::Ice::Int), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_Server_connect<T>(instance, cb, excb, sentcb);
+}
+
+template<class T, typename CT>
+class Callback_Server_connect : public Callback_Server_connect_Base, public ::IceInternal::TwowayCallback<T, CT>
+{
+public:
+
+    typedef IceUtil::Handle<T> TPtr;
+
+    typedef void (T::*Exception)(const ::Ice::Exception& , const CT&);
+    typedef void (T::*Sent)(bool , const CT&);
+    typedef void (T::*Response)(::Ice::Int, const CT&);
+
+    Callback_Server_connect(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+        : ::IceInternal::TwowayCallback<T, CT>(obj, cb != 0, excb, sentcb), response(cb)
+    {
+    }
+
+    virtual void __completed(const ::Ice::AsyncResultPtr& __result) const
+    {
+        ::Dolan::ServerPrx __proxy = ::Dolan::ServerPrx::uncheckedCast(__result->getProxy());
+        ::Ice::Int __ret;
+        try
+        {
+            __ret = __proxy->end_connect(__result);
+        }
+        catch(::Ice::Exception& ex)
+        {
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+            __exception(__result, ex);
+#else
+            ::IceInternal::Callback<T, CT>::__exception(__result, ex);
+#endif
+            return;
+        }
+        if(response)
+        {
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+            (callback.get()->*response)(__ret, CT::dynamicCast(__result->getCookie()));
+#else
+            (::IceInternal::Callback<T, CT>::callback.get()->*response)(__ret, CT::dynamicCast(__result->getCookie()));
+#endif
+        }
+    }
+
+    Response response;
+};
+
+template<class T, typename CT> Callback_Server_connectPtr
+newCallback_Server_connect(const IceUtil::Handle<T>& instance, void (T::*cb)(::Ice::Int, const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_Server_connect<T, CT>(instance, cb, excb, sentcb);
+}
+
+template<class T, typename CT> Callback_Server_connectPtr
+newCallback_Server_connect(T* instance, void (T::*cb)(::Ice::Int, const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_Server_connect<T, CT>(instance, cb, excb, sentcb);
+}
+
+template<class T>
+class CallbackNC_Server_getServers : public Callback_Server_getServers_Base, public ::IceInternal::TwowayCallbackNC<T>
+{
+public:
+
+    typedef IceUtil::Handle<T> TPtr;
+
+    typedef void (T::*Exception)(const ::Ice::Exception&);
+    typedef void (T::*Sent)(bool);
+    typedef void (T::*Response)(const ::Dolan::ServersInfo&);
+
+    CallbackNC_Server_getServers(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+        : ::IceInternal::TwowayCallbackNC<T>(obj, cb != 0, excb, sentcb), response(cb)
+    {
+    }
+
+    virtual void __completed(const ::Ice::AsyncResultPtr& __result) const
+    {
+        ::Dolan::ServerPrx __proxy = ::Dolan::ServerPrx::uncheckedCast(__result->getProxy());
+        ::Dolan::ServersInfo __ret;
+        try
+        {
+            __ret = __proxy->end_getServers(__result);
+        }
+        catch(::Ice::Exception& ex)
+        {
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+            __exception(__result, ex);
+#else
+            ::IceInternal::CallbackNC<T>::__exception(__result, ex);
+#endif
+            return;
+        }
+        if(response)
+        {
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+            (callback.get()->*response)(__ret);
+#else
+            (::IceInternal::CallbackNC<T>::callback.get()->*response)(__ret);
+#endif
+        }
+    }
+
+    Response response;
+};
+
+template<class T> Callback_Server_getServersPtr
+newCallback_Server_getServers(const IceUtil::Handle<T>& instance, void (T::*cb)(const ::Dolan::ServersInfo&), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_Server_getServers<T>(instance, cb, excb, sentcb);
+}
+
+template<class T> Callback_Server_getServersPtr
+newCallback_Server_getServers(T* instance, void (T::*cb)(const ::Dolan::ServersInfo&), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_Server_getServers<T>(instance, cb, excb, sentcb);
+}
+
+template<class T, typename CT>
+class Callback_Server_getServers : public Callback_Server_getServers_Base, public ::IceInternal::TwowayCallback<T, CT>
+{
+public:
+
+    typedef IceUtil::Handle<T> TPtr;
+
+    typedef void (T::*Exception)(const ::Ice::Exception& , const CT&);
+    typedef void (T::*Sent)(bool , const CT&);
+    typedef void (T::*Response)(const ::Dolan::ServersInfo&, const CT&);
+
+    Callback_Server_getServers(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+        : ::IceInternal::TwowayCallback<T, CT>(obj, cb != 0, excb, sentcb), response(cb)
+    {
+    }
+
+    virtual void __completed(const ::Ice::AsyncResultPtr& __result) const
+    {
+        ::Dolan::ServerPrx __proxy = ::Dolan::ServerPrx::uncheckedCast(__result->getProxy());
+        ::Dolan::ServersInfo __ret;
+        try
+        {
+            __ret = __proxy->end_getServers(__result);
+        }
+        catch(::Ice::Exception& ex)
+        {
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+            __exception(__result, ex);
+#else
+            ::IceInternal::Callback<T, CT>::__exception(__result, ex);
+#endif
+            return;
+        }
+        if(response)
+        {
+#if defined(_MSC_VER) && (_MSC_VER < 1300) // VC++ 6 compiler bug
+            (callback.get()->*response)(__ret, CT::dynamicCast(__result->getCookie()));
+#else
+            (::IceInternal::Callback<T, CT>::callback.get()->*response)(__ret, CT::dynamicCast(__result->getCookie()));
+#endif
+        }
+    }
+
+    Response response;
+};
+
+template<class T, typename CT> Callback_Server_getServersPtr
+newCallback_Server_getServers(const IceUtil::Handle<T>& instance, void (T::*cb)(const ::Dolan::ServersInfo&, const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_Server_getServers<T, CT>(instance, cb, excb, sentcb);
+}
+
+template<class T, typename CT> Callback_Server_getServersPtr
+newCallback_Server_getServers(T* instance, void (T::*cb)(const ::Dolan::ServersInfo&, const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_Server_getServers<T, CT>(instance, cb, excb, sentcb);
+}
+
+template<class T>
+class CallbackNC_Server_disconnect : public Callback_Server_disconnect_Base, public ::IceInternal::OnewayCallbackNC<T>
+{
+public:
+
+    typedef IceUtil::Handle<T> TPtr;
+
+    typedef void (T::*Exception)(const ::Ice::Exception&);
+    typedef void (T::*Sent)(bool);
+    typedef void (T::*Response)();
+
+    CallbackNC_Server_disconnect(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+        : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
+    {
+    }
+};
+
+template<class T> Callback_Server_disconnectPtr
+newCallback_Server_disconnect(const IceUtil::Handle<T>& instance, void (T::*cb)(), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_Server_disconnect<T>(instance, cb, excb, sentcb);
+}
+
+template<class T> Callback_Server_disconnectPtr
+newCallback_Server_disconnect(const IceUtil::Handle<T>& instance, void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_Server_disconnect<T>(instance, 0, excb, sentcb);
+}
+
+template<class T> Callback_Server_disconnectPtr
+newCallback_Server_disconnect(T* instance, void (T::*cb)(), void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_Server_disconnect<T>(instance, cb, excb, sentcb);
+}
+
+template<class T> Callback_Server_disconnectPtr
+newCallback_Server_disconnect(T* instance, void (T::*excb)(const ::Ice::Exception&), void (T::*sentcb)(bool) = 0)
+{
+    return new CallbackNC_Server_disconnect<T>(instance, 0, excb, sentcb);
+}
+
+template<class T, typename CT>
+class Callback_Server_disconnect : public Callback_Server_disconnect_Base, public ::IceInternal::OnewayCallback<T, CT>
+{
+public:
+
+    typedef IceUtil::Handle<T> TPtr;
+
+    typedef void (T::*Exception)(const ::Ice::Exception& , const CT&);
+    typedef void (T::*Sent)(bool , const CT&);
+    typedef void (T::*Response)(const CT&);
+
+    Callback_Server_disconnect(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
+        : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
+    {
+    }
+};
+
+template<class T, typename CT> Callback_Server_disconnectPtr
+newCallback_Server_disconnect(const IceUtil::Handle<T>& instance, void (T::*cb)(const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_Server_disconnect<T, CT>(instance, cb, excb, sentcb);
+}
+
+template<class T, typename CT> Callback_Server_disconnectPtr
+newCallback_Server_disconnect(const IceUtil::Handle<T>& instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_Server_disconnect<T, CT>(instance, 0, excb, sentcb);
+}
+
+template<class T, typename CT> Callback_Server_disconnectPtr
+newCallback_Server_disconnect(T* instance, void (T::*cb)(const CT&), void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_Server_disconnect<T, CT>(instance, cb, excb, sentcb);
+}
+
+template<class T, typename CT> Callback_Server_disconnectPtr
+newCallback_Server_disconnect(T* instance, void (T::*excb)(const ::Ice::Exception&, const CT&), void (T::*sentcb)(bool, const CT&) = 0)
+{
+    return new Callback_Server_disconnect<T, CT>(instance, 0, excb, sentcb);
 }
 
 }

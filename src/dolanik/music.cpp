@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2013  <copyright holder> <email>
+    Copyright (C) 2013  Mateusz "MaxMati" Nowotynski <maxmati4@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,13 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <boost/thread.hpp>
 
 #include "music.h"
 
-#include <boost/thread.hpp>
+#include <libmumbleclient/PacketDataStream.hpp>
 
-#include "../libmumbleclient/PacketDataStream.hpp"
-#include "../misc.h"
+#include <misc.h>
 
 namespace Dolanik {
 
@@ -248,18 +248,6 @@ void Music::playMp3(const char* path)
     if(mpg123_meta_check(mh) & MPG123_ID3)
         mpg123_id3(mh, NULL, &id3v2);
 
-    /*
-      if(id3v2 && id3v2->title) {
-        if(id3v2->artist) {
-          currentSongTittle = id3v2->artist->p;
-          currentSongTittle += " - ";
-        }
-
-        currentSongTittle += id3v2->title->p;
-        statusComment();//TODO
-      }
-    */
-
     rate = kSampleRate;
     channels = MPG123_MONO;
     err = mpg123_format(mh, rate, channels, encoding);
@@ -345,7 +333,7 @@ void Music::playMp3(const char* path)
 void Music::run()
 {
 
-    while(!queuedSongs.empty())
+    while(!queuedSongs.empty() || replayCurrentSongFlag)
     {
         playback = true;
 

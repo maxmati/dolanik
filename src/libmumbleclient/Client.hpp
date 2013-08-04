@@ -68,7 +68,7 @@ public:
     void SetChannelRemoveCallback(ChannelRemoveCallbackType crt) { channel_remove_callback_ = crt; }
     void SetErrorCallback(ErrorCallbackType ec) { error_callback_ = ec; }
     
-    //tymczasowo
+    //TODO: temporary
     const Audio *getAudio() const { return &audio_; };
    
 private:

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2013  <copyright holder> <email>
+    Copyright (C) 2013  Mateusz "MaxMati" Nowotynski <maxmati4@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #include <boost/filesystem.hpp>
 #include <mpg123.h>
 
-#include "../libmumbleclient/Client.hpp"
+#include <libmumbleclient/Client.hpp>
 
 namespace Dolanik{
  

@@ -32,9 +32,7 @@ CELTCodec::CELTCodec(const std::string& version) {
 	}
 }
 
-CELTCodec::~CELTCodec() {
-	std::cout << "jestem chujem i sie nie wykonuje" << std::endl;
-	
+CELTCodec::~CELTCodec() {	
 	if(celtLibrary.isLoaded())
 		celtLibrary.unload();
 }

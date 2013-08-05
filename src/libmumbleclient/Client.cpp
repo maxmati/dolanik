@@ -492,23 +492,25 @@ void MumbleClient::Connect(const Settings& s) {
 }
 
 void MumbleClient::Disconnect() {
-    if (ping_timer_)
-        ping_timer_->cancel();
-    send_queue_.clear();
-    user_list_.clear();
-    channel_list_.clear();
+  if (state_ == kStateNew)
+    return;
+  if (ping_timer_)
+    ping_timer_->cancel();
+  send_queue_.clear();
+  user_list_.clear();
+  channel_list_.clear();
 
-    tcp_socket_->lowest_layer().cancel();
-    tcp_socket_->lowest_layer().close();
-    udp_socket_->close();
+  tcp_socket_->lowest_layer().cancel();
+  tcp_socket_->lowest_layer().close();
+  udp_socket_->close();
 
-    delete tcp_socket_;
-    delete udp_socket_;
+  delete tcp_socket_;
+  delete udp_socket_;
 
-    tcp_socket_ = NULL;
-    udp_socket_ = NULL;
+  tcp_socket_ = NULL;
+  udp_socket_ = NULL;
 
-    state_ = kStateNew;
+  state_ = kStateNew;
 }
 
 void MumbleClient::SendMessage(PbMessageType::MessageType type, const ::google::protobuf::Message& new_msg, bool print) {

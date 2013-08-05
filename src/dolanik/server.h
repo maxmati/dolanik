@@ -35,10 +35,7 @@ class Server
 {
 public:
     Server(MumbleClient::MumbleClient* mc);
-    //Server(const Server& other); 
     ~Server();
-    //Server& operator=(const Server& other); 
-    //bool operator==(const Server& other); TODO
     
     void connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password);
     void disconnect();
@@ -48,7 +45,6 @@ public:
     std::string getPort();
     std::string getUsername();
     std::string getPassword();
-   
 private:
     boost::scoped_ptr<MumbleClient::MumbleClient> mumbleClient;
     boost::shared_ptr<Music> musicAPI;

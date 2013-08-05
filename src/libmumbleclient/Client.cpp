@@ -75,8 +75,8 @@ MumbleClient::MumbleClient(boost::asio::io_service* io_service) :
     io_service_(io_service),
     cs_(new CryptState()),
     state_(kStateNew),
-    processing_tcp_queue_(false),
-    ping_timer_(NULL) {
+    ping_timer_(NULL),
+    processing_tcp_queue_(false) {
 }
 
 void MumbleClient::DoPing(const boost::system::error_code& error) {

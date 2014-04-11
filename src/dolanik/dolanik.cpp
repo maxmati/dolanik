@@ -22,30 +22,30 @@
 
 #include <libmumbleclient/ClientLib.hpp>
 
-#include "dolan.h"
+#include "dolanik.h"
 #include "server.h"
 
 
 namespace Dolanik {
-std::map< uint, boost::shared_ptr< Server > > Dolan::getServers()
+std::map< uint, boost::shared_ptr< Server > > Dolanik::getServers()
 {
   return this->servers;
 }
 
 
-Dolan::Dolan():
+Dolanik::Dolanik():
 mumbleClientLib(MumbleClient::MumbleClientLib::instance()),
 nextId(0)
 {
     mumbleClientLib->SetLogLevel(3);
 }
-void Dolan::disconnect(int id)
+void Dolanik::disconnect(int id)
 {
   servers.at(id)->disconnect();
   servers.erase(id);
 }
 
-uint Dolan::connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password)
+uint Dolanik::connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password)
 {
   uint id = nextId++;
   boost::shared_ptr<Server> server(new Server(mumbleClientLib->NewClient()));
@@ -55,30 +55,30 @@ uint Dolan::connect(const std::string& host, const std::string& port, const std:
 }
 
 
-void Dolan::init()
+void Dolanik::init()
 {
-    boost::thread(boost::bind(&Dolan::run,this));
+    boost::thread(boost::bind(&Dolanik::run,this));
 }
 
 
-void Dolan::onAuth()
+void Dolanik::onAuth()
 {
 }
 
-void Dolan::run()
+void Dolanik::run()
 {
   this->running = true;
   while(this->running)
     mumbleClientLib->Run();
 }
 
-boost::shared_ptr< Music > Dolan::Dolan::getMusic(uint id)
+boost::shared_ptr< Music > Dolanik::Dolanik::getMusic(uint id)
 {
   return this->servers.at(id)->getMusic();
 }
 
 
-Dolan::~Dolan()
+Dolanik::~Dolanik()
 {
   this->running = false;
   mumbleClientLib->Shutdown();

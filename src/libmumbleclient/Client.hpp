@@ -11,7 +11,7 @@
 #include <boost/system/error_code.hpp>
 
 #include "Messages.hpp"
-#include "Mumble.pb.h"
+#include <Mumble.pb.h>
 #include "Visibility.hpp"
 #include "Audio.hpp"
 

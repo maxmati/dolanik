@@ -1,4 +1,4 @@
-list(APPEND dolan_SRC src/dolanik/dolan.cpp
+list(APPEND dolan_SRC src/dolanik/dolanik.cpp
 		      src/dolanik/music.cpp
 		      src/dolanik/server.cpp
 )

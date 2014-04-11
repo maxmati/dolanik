@@ -2,14 +2,14 @@
 #include <Ice/Ice.h>
 #include <ice/dolanI.h>
 
-#include <dolanik/dolan.h>
+#include <dolanik/dolanik.h>
 
 
 
 
 int  main()
 {
-	boost::shared_ptr<Dolanik::Dolan> dolan(new Dolanik::Dolan);
+	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
 	dolan->init();
 	
 	int status = 0;

@@ -7,7 +7,6 @@ set (LIBMUMBLECLIENT_SOURCES
     src/libmumbleclient/CELTCodec.cpp
     src/libmumbleclient/Library.cpp
     src/libmumbleclient/Audio.cpp
-    src/libmumbleclient/Mumble.pb.cc
     PARENT_SCOPE
 )
 
@@ -26,6 +25,10 @@ set (LIBMUMBLECLIENT_HEADERS
     src/libmumbleclient/CELTCodec.hpp
     src/libmumbleclient/Library.hpp
     src/libmumbleclient/Audio.hpp
-    src/libmumbleclient/Mumble.pb.h
+    PARENT_SCOPE
+)
+
+set (LIBMUMBLECLIENT_PROTO
+    src/libmumbleclient/Mumble.proto
     PARENT_SCOPE
 )

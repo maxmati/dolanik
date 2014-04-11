@@ -1,16 +1,16 @@
 #pragma once
 
-#include "dolan.h"
+#include <dolan.h>
 #include <boost/shared_ptr.hpp>
 
 namespace Dolanik {
-class Dolan;
+class Dolanik;
 class Music;
 }
 
 class MusicI : public Dolan::Music {
 public:
-    MusicI(Dolanik::Dolan* dolan);
+    MusicI(Dolanik::Dolanik* dolan);
     virtual void stop(Ice::Int, const Ice::Current&);
     virtual Ice::Double adjustVolume(Ice::Int, Ice::Double, const Ice::Current&);
     virtual void replay(Ice::Int, const Ice::Current&);
@@ -22,15 +22,15 @@ public:
     virtual void play(Ice::Int, const Dolan::Song&, const Ice::Current&);
     virtual Dolan::Song getCurrentSong(Ice::Int, const Ice::Current&);
 private:
-    Dolanik::Dolan* dolan;
+    Dolanik::Dolanik* dolan;
 };
 
 class ServerI : public Dolan::Server {
 public:
-    ServerI(Dolanik::Dolan* dolan);
+    ServerI(Dolanik::Dolanik* dolan);
     virtual Ice::Int connect(const Dolan::ServerInfo& , const Ice::Current&  = ::Ice::Current());
     virtual Dolan::ServersInfo getServers(const Ice::Current&  = ::Ice::Current());
     virtual void disconnect(Ice::Int , const Ice::Current&  = ::Ice::Current());
 private:
-    Dolanik::Dolan* dolan;
+    Dolanik::Dolanik* dolan;
 };

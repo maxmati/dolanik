@@ -65,6 +65,63 @@ FOREACH( exec ${ICE_EXECUTABLES} )
 	ENDIF(ZeroCIce_${exec}_FOUND)
 ENDFOREACH( exec ${ICE_EXECUTABLES} )
 
+macro( SLICE_GENERATE_CPP generated_cpp_list generated_header_list )
+
+    set( generator_command	${ZeroCIce_slice2cpp_BIN} )
+    set( proj_slice_src_dir	${PROJECT_SOURCE_DIR} )
+    set( slice2cpp_binary_dir	${PROJECT_BINARY_DIR} )
+
+    #
+    # Loop through all SLICE sources we were given, add the CMake rules
+    #
+    set( slice_source_counter 0 )
+    
+    foreach( slice_source_basename ${ARGN} )
+        set( slice_source "${proj_slice_src_dir}/${slice_source_basename}" )
+        GET_FILENAME_COMPONENT(SRC_DIR ${slice_source_basename} PATH)
+        set( slice_args ${SLICE_PROJECT_ARGS} --stream --output-dir ${slice2cpp_binary_dir}/${SRC_DIR} )
+
+
+        #message( STATUS "DEBUG: Dealing with ${slice_source_basename}")
+
+        #message( STATUS "DEBUG: Adding rule for generating header file from ${slice_source_basename}" )
+        string( REGEX REPLACE "\\.ice" ".h" header_basename "${slice_source_basename}" )
+        list( APPEND ${generated_header_list} ${header_basename} )
+        # this command will be run at make time
+        
+        add_custom_command(
+            OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${header_basename}
+            COMMAND ${generator_command}
+            ARGS ${slice_args} ${slice_source}
+            COMMENT "-- Generating header file from ${slice_source}"
+            VERBATIM
+        )
+
+        #message( STATUS "DEBUG: Adding rule for generating source file from ${slice_source_basename}" )
+        string( REGEX REPLACE "\\.ice" ".cpp" cpp_basename "${slice_source_basename}" )
+        list( APPEND ${generated_cpp_list} ${cpp_basename} )
+        # this command will be run at make time
+        add_custom_command(
+            OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${cpp_basename}
+            COMMAND ${generator_command}
+            ARGS ${slice_args} ${slice_source}
+            COMMENT "-- Generating source file from ${slice_source}"
+            VERBATIM
+        )
+
+        math( EXPR slice_source_counter "${slice_source_counter} + 1" )
+
+    endforeach( slice_source_basename )
+
+    #message( STATUS "DEBUG: generated_cpp_list: ${${generated_cpp_list}}")
+    #message( STATUS "DEBUG: generated_header_list: ${${generated_header_list}}")
+
+    # this message is useful for manual generation
+    message( STATUS "Will generate cpp header and source files from ${slice_source_counter} Slice definitions using this command:" )
+    message( STATUS "${generator_command} <source.ice> ${slice_args}" )
+
+endmacro( SLICE_GENERATE_CPP generated_cpp_list generated_header_list )
+
 SET( ZeroCIce_FOUND ${ZeroCIceCore_FOUND} )
 
 IF(ZeroCIce_FOUND)

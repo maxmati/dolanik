@@ -1,10 +1,10 @@
 #include "dolanI.h"
-#include <dolanik/dolan.h>
+#include <dolanik/dolanik.h>
 #include <dolanik/server.h>
 #include <dolanik/music.h>
 #include <libmumbleclient/Settings.hpp>
 
-ServerI::ServerI(Dolanik::Dolan* dolan):
+ServerI::ServerI(Dolanik::Dolanik* dolan):
 dolan(dolan)
 {}
 
@@ -39,7 +39,7 @@ Ice::Int ServerI::connect(const Dolan::ServerInfo& si, const Ice::Current& )
 }
 
 
-MusicI::MusicI(Dolanik::Dolan* dolan):
+MusicI::MusicI(Dolanik::Dolanik* dolan):
 dolan(dolan)
 {
 }

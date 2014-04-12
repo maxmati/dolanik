@@ -13,6 +13,7 @@ module Dolan {
 		string port;
 		string username;
 		string password;
+		string certFile;
 		int id = -1; /*-1 if unused*/
 	};
 	sequence<ServerInfo> ServersInfo;

@@ -34,7 +34,10 @@ public:
     Dolanik();
     void init();
     boost::shared_ptr< Music > getMusic(uint id);
-    uint connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password);
+    uint connect(const std::string& host, const std::string& port,
+		 const std::string& username, const std::string& password,
+		 const std::string& certFile
+		);
     void disconnect(int id);
     virtual void run();
     virtual ~Dolanik();

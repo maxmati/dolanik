@@ -40,13 +40,15 @@ std::string Server::getUsername()
 }
 
   
-void Server::connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password)
+void Server::connect(const std::string& host, const std::string& port,
+		     const std::string& username, const std::string& password,
+		     const std::string& certFile)
 {
   this->host=host;
   this->port=port;
   this->username=username;
   this->password=password;
-  this->mumbleClient->Connect(MumbleClient::Settings(host,port,username,password));
+  this->mumbleClient->Connect(MumbleClient::Settings(host,port,username,password,certFile));
 }
 
 void Server::disconnect()

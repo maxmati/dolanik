@@ -35,7 +35,7 @@ void ServerI::disconnect(Ice::Int id , const Ice::Current& )
 
 Ice::Int ServerI::connect(const Dolan::ServerInfo& si, const Ice::Current& )
 {
-  return this->dolan->connect(si.host,si.port,si.username,si.password);
+  return this->dolan->connect(si.host,si.port,si.username,si.password, si.certFile);
 }
 
 

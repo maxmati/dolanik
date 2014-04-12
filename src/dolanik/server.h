@@ -37,7 +37,7 @@ public:
     Server(MumbleClient::MumbleClient* mc);
     ~Server();
     
-    void connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password);
+    void connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password, const std::string& certFile);
     void disconnect();
     
     boost::shared_ptr<Music> getMusic();

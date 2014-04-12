@@ -37,7 +37,7 @@ Dolanik::Dolanik():
 mumbleClientLib(MumbleClient::MumbleClientLib::instance()),
 nextId(0)
 {
-    mumbleClientLib->SetLogLevel(3);
+    mumbleClientLib->SetLogLevel(0);
 }
 void Dolanik::disconnect(int id)
 {
@@ -45,12 +45,14 @@ void Dolanik::disconnect(int id)
   servers.erase(id);
 }
 
-uint Dolanik::connect(const std::string& host, const std::string& port, const std::string& username, const std::string& password)
+uint Dolanik::connect(const std::string& host, const std::string& port,
+		      const std::string& username, const std::string& password,
+		      const std::string& certFile)
 {
   uint id = nextId++;
   boost::shared_ptr<Server> server(new Server(mumbleClientLib->NewClient()));
   servers.insert(std::pair<uint, boost::shared_ptr<Server> > (id, server));
-  servers.at(id)->connect(host,port,username,password);
+  servers.at(id)->connect(host,port,username,password,certFile);
   return id;
 }
 

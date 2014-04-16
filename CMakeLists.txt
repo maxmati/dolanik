@@ -1,4 +1,3 @@
-#TODO: Slice2cpp
 project(dolanik)
 cmake_minimum_required (VERSION 2.6)
 
@@ -61,6 +60,11 @@ message (STATUS "ZeroCIce found!")
 message (STATUS "Libraries: " ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} )
 message (STATUS "")
 
+find_package (LibSpotify REQUIRED)
+message (STATUS "LibSpotify found!")
+message (STATUS "Include dirs: " ${LIBSPOTIFY_INCLUDE_DIR})
+message (STATUS "Libraries: " ${LIBSPOTIFY_LIBRARIES})
+
 
 set(LIBMUMBLE_BUILD_TYPE STATIC)
 set(LIBMUMBLECLIENT_LIBRARIES dl pthread)
@@ -108,5 +112,6 @@ target_link_libraries(
 add_library(dolan ${dolan_SRC})
 target_link_libraries(dolan libmumbleclient mpg123)
 
-add_executable(dolanik ${dolanik_SRC} ${DOLANIK_ICE_SOURCES})
-target_link_libraries(dolanik dolan ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} )
+add_executable(dolanik ${dolanik_SRC} 
+${DOLANIK_ICE_SOURCES})
+target_link_libraries(dolanik dolan ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} ${LIBSPOTIFY_LIBRARY_DEBUG})

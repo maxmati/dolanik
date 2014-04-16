@@ -21,41 +21,34 @@
 
 #include <string>
 #include <deque>
+#include <atomic>
 
 #include <boost/thread.hpp>
+#include <boost/thread/condition.hpp>
 #include <boost/bind.hpp>
-#include <boost/filesystem.hpp>
-#include <mpg123.h>
 
-#include <libmumbleclient/Client.hpp>
+
+#include <dolanik/song.h>
 
 namespace Dolanik{
- 
+  class Song;
   
   class Music
   {
   public:
-	  
-	  struct Song{
-		  boost::filesystem::path path;
-		  std::string artist;
-		  std::string title;
-		  std::string album;
-	  };
-
-  public:
+    typedef boost::function<void()> EndOfTrackCallbackType;
+    
     Music(MumbleClient::MumbleClient* mc);
-    virtual void play(std::string path, std::string title, std::string album, std::string artist);
-    virtual void stop();
+    virtual void play(Song::Ptr);///Thread safe
+    virtual void stop();///Thread safe
     virtual void adjustVolume(double delta);
-    virtual void replay();
+    virtual void replay();///Thread safe
     virtual void setEqualizer(int band, double amp);
     virtual void resetEqualizer();
-    virtual void clearQueue();
+    virtual void clearQueue();///Thread safe
     virtual double getVolume();
     virtual void setVolume(double volume);
-    Song getCurrentSong();
-    uint getCurrentSongLength();
+    Song::Ptr getCurrentSong();///Thread safe
     
     virtual void run();
     virtual ~Music();
@@ -65,22 +58,20 @@ namespace Dolanik{
     void onTxtMsg(const std::string& text);
     void statusComment();
     std::string genPlaylistString();
-    void playMp3(const char* path);
+    void notifyPlaybackThread();    
     
-    bool playback;
-    bool replayCurrentSongFlag;
+    std::atomic<bool> playback;
+    std::atomic<bool> replayCurrentSongFlag;
     double volume;
-
-    mpg123_handle *mh;
 
     MumbleClient::MumbleClient* mc;
     
-    const int32_t kSampleRate;
-    long orginalSampleRate;
-
-    Song currentSong;
-    Song lastSong;
-    std::deque<Song> queuedSongs;
+    boost::mutex playbackThreadMutex;
+    boost::condition playbackThreadCond;
+    boost::mutex songsMutex;
+    Song::Ptr currentSong;
+    std::list<Song::Ptr> history;
+    std::deque<Song::Ptr> queue;
   };
 
 }

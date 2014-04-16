@@ -9,7 +9,8 @@ Audio::Audio(MumbleClient *mumbleClient) :
 	mumbleClient(mumbleClient),
 	celtCodec(nullptr),
 	celtEncoder(nullptr),
-	totalFrames(0) {
+	totalFrames(0),
+	queuedFrames(0) {
 }
 
 void Audio::flushCheck(const unsigned char buffer[], bool forceFlush) {

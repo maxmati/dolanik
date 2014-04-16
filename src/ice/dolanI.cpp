@@ -45,16 +45,17 @@ dolan(dolan)
 }
 void MusicI::play(Ice::Int id ,const Dolan::Song& song, const Ice::Current&)
 {
-	this->dolan->getMusic(id)->play(song.path, song.title, song.album, song.artist);
+	//this->dolan->getMusic(id)->play(song.path, song.title, song.album, 
+	//song.artist);
 }
 Dolan::Song MusicI::getCurrentSong(Ice::Int id ,const Ice::Current&)
 {
-	Dolanik::Music::Song song = this->dolan->getMusic(id)->getCurrentSong();
+	Dolanik::Song::Ptr song = this->dolan->getMusic(id)->getCurrentSong();
 	Dolan::Song tmp;
-	tmp.path = song.path.native();
-	tmp.title = song.title;
-	tmp.album = song.album;
-	tmp.artist = song.artist;
+	//tmp.path = song.path.native();//FIXME
+	tmp.title = song->getTitle();
+	tmp.album = song->getAlbum();
+	tmp.artist = song->getArtist();
 	return tmp;
 }
 void MusicI::stop(Ice::Int id ,const Ice::Current&)

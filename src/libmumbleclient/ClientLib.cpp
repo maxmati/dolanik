@@ -37,7 +37,7 @@ MumbleClientLib::MumbleClientLib() {
 
 MumbleClientLib::~MumbleClientLib() {
 	//TODO: memleak (cos sie ten destruktor kurwa nie wykonuje)
-	//MAXMATI: Jak mam si? kurwa wykona? jak jestem prywatny
+	//MAXMATI: Jak mam się kurwa wykonać jak jestem prywatny
 	for(std::pair<int, CELTCodec*> codec : codecMap)
 		delete codec.second;
 	

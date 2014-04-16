@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <boost/scoped_ptr.hpp>
+#include <map>
 
 namespace MumbleClient {
 class MumbleClientLib;

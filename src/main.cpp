@@ -1,18 +1,31 @@
 #include <iostream>
 #include <Ice/Ice.h>
+#include <spotify/spotify.h>
+#include "spotify/spotifySong.h"
 #include <ice/dolanI.h>
 
 #include <dolanik/dolanik.h>
 #include <dolanik/music.h>
+#include "dolanik/mp3Player.h"
 
 int main()
 {
 	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
 	dolan->init();
-	uint id = dolan->connect("mumble.maxmati.pl", "64738", "patelacha_dolan", "", "./Cert.pem");
+	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "./Cert.pem");
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
+	Spotify spotify("maxmati", "xxx");
+	SpotifySong::Ptr sSong =
+	spotify.createSong("spotify:track:5kuDRH5Mb2JazzzKhMLL3z");
+	Mp3Player player;
+	Mp3Song::Ptr mp3Song = player.createSong("/home/maxmati/Downloads/da.mp3","title","album", "artist");
 	sleep(5);
-	music->play("sample.mp3","a","n","c");
+	//music->play( mp3Song );
+	music->play( sSong );
+	sleep(1000);
+	
+	
+	//music->play("/home/maxmati/Downloads/da.mp3","a","n","c");
 	
 	int status = 0;
 	Ice::CommunicatorPtr ic;

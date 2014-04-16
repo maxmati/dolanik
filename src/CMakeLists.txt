@@ -1,6 +1,7 @@
 add_subdirectory(dolanik)
 add_subdirectory(libmumbleclient)
 add_subdirectory(ice)
+add_subdirectory(spotify)
 
 list(APPEND dupa_SRC src/misc.cpp)
 list(APPEND dolanik_SRC src/main.cpp)

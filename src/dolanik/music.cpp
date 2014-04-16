@@ -20,21 +20,23 @@
 
 #include "music.h"
 
-#include <libmumbleclient/PacketDataStream.hpp>
-
 #include <misc.h>
+
+#include <libmumbleclient/PacketDataStream.hpp>
+#include <libmumbleclient/Client.hpp>
+
+
 
 namespace Dolanik {
 
 Music::Music(MumbleClient::MumbleClient* _mc)
-    :playback(false),
-     replayCurrentSongFlag(false),
-     volume(0.2),
-     mh(NULL),
-     mc(_mc),
-     kSampleRate(48000)
+  :playback(false),
+  replayCurrentSongFlag(false),
+  volume(0.2),
+  mc(_mc)
 {
     mc->SetTextMessageCallback(boost::bind(&Music::onTxtMsg,this, _1));
+    boost::thread(boost::bind(&Music::run, this));
 }
 
 Music::~Music()
@@ -46,25 +48,24 @@ double Music::getVolume()
 {
   return volume;
 }
-Music::Song Music::getCurrentSong()
+Song::Ptr Music::getCurrentSong()
 {
+  boost::mutex::scoped_lock lock(songsMutex);
   return currentSong;
 }
-uint Music::getCurrentSongLength()
-{
-  if(mh)
-  {
-    int length = mpg123_length(mh);
-    if(length != MPG123_ERR)
-      return length/this->orginalSampleRate;
-  }
-  return 0;
-}
+
 
 
 void Music::stop()
 {
     playback = false;
+    boost::mutex::scoped_lock lock(songsMutex);
+    if(currentSong)
+    {
+      currentSong->stop();
+      history.push_back(currentSong);
+      currentSong.reset();
+    }
     statusComment();
 }
 void Music::setVolume(double volume)
@@ -85,52 +86,53 @@ void Music::adjustVolume(double delta)
 void Music::replay()
 {
     replayCurrentSongFlag = true;
-    if(!playback)
-    {
-        boost::thread(boost::bind(&Music::run,this));
-    }
+    notifyPlaybackThread();
 }
-void Music::setEqualizer(int band, double amp)
+void Music::setEqualizer(int band, double amp)//TODO
 {
     if(band < 0 || band > 31 || amp < 0)
         return;
 
-    if(mh)
-        mpg123_eq(mh, MPG123_LR, band, amp);
+    //if(mh)
+    //    mpg123_eq(mh, MPG123_LR, band, amp);
 }
-void Music::resetEqualizer()
+void Music::resetEqualizer()//TODO
 {
-    if(mh)
-        mpg123_reset_eq(mh);
+    //if(mh)
+    //    mpg123_reset_eq(mh);
 }
 
 void Music::clearQueue()
 {
-  queuedSongs.clear();
+  boost::mutex::scoped_lock lock(songsMutex);
+  queue.clear();
 }
 
-void Music::play(std::string path, std::string title, std::string album, std::string artist)
+void Music::play( Dolanik::Song::Ptr song)
 {
-    Song song;
-    song.path = path;
-    song.title = title;
-    song.album = album;
-    song.artist = artist;
-    queuedSongs.push_back(song);
-    if(!playback)
-    {
-        boost::thread(boost::bind(&Music::run,this));
-    }
-    statusComment();
+  boost::mutex::scoped_lock lock(songsMutex);
+  queue.push_back(song);
+  notifyPlaybackThread();
+  statusComment();
+}
+void Music::notifyPlaybackThread()
+{
+  if(!playback)
+  {
+    boost::mutex::scoped_lock lock(playbackThreadMutex);
+    playback = true;
+    playbackThreadCond.notify_one();
+  }
 }
 
 std::string Music::genPlaylistString()
 {
   std::string result = "";
-  for(uint i = 0;i< queuedSongs.size() ;++i)
+  for(uint i = 0;i< queue.size() ;++i)
   {
-    Song song = queuedSongs.at(i);
-    result += /*Anal::toStr(i+1) + */ ") " + song.title + " : " + song.artist + "<br />";//FIXME
+    boost::shared_ptr<Song> song = queue.at(i);
+    result += /*Anal::toStr(i+1) + */ ") " + song->getTitle() + " : " +
+      song->getArtist() + "<br />";//FIXME
     
   }
   return result;
@@ -159,7 +161,8 @@ void Music::onTxtMsg(const std::string& text)
         std::string msg = "Dolanik status: <br />";
         msg += "Current volume = " + strs.str() + "%<br />";
         if(playback)
-            msg += "I'm currently playing song : "+ currentSong.title + "(Length:" /*"+ Anal::toStr(getCurrentSongLength()) +" */ "s ) <br />"; //FIXME
+            msg += "I'm currently playing song : "+ currentSong->getTitle() 
+		+ "(Length:" /*"+ Anal::toStr(getCurrentSongLength()) +" */ "s ) <br />"; //FIXME
         mc->SendTextMessage("music",msg);
     } else if(text == "playlist")
     {
@@ -200,114 +203,46 @@ void Music::statusComment()
     strs << volume;
     std::string msg = "Dolanik status: <br />";
     msg += "Current volume = " + strs.str() + "<br />";
-    if(playback)
+    if(playback && currentSong)
         msg += "I'm currently playing song : <br />"
-             + currentSong.title +" : " + currentSong.artist  + "(Length: "/*+ Anal::toStr(getCurrentSongLength()) +*/"s ) <br />";
-    if(!queuedSongs.empty())
+	    + currentSong->getTitle() +" : " + currentSong->getArtist()
+	    + "(Length: "/*+ Anal::toStr(getCurrentSongLength()) +*/"s ) <br />";
+    if(!queue.empty())
       msg += "Playlist: <br />" 
 	  + genPlaylistString();
     mc->SetComment(msg);
 }
 
-void Music::playMp3(const char* path)
-{
-    std::cout << "<< play mp3 thread" << std::endl;
-
-    struct sched_param param;
-    param.sched_priority = 1;
-    pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
-
-    // FIXME(pcgod): 1-6 to match Mumble client
-    uint frames = 6;
-    mc->getAudio()->setMaxBandwidth(24000, frames);
-
-    int err = mpg123_init();
-
-    mh = mpg123_new(NULL, &err);
-    mpg123_param(mh, MPG123_VERBOSE, 255, 0);
-    mpg123_param(mh, MPG123_RVA, MPG123_RVA_MIX, 0);
-    mpg123_param(mh, MPG123_ADD_FLAGS, MPG123_MONO_MIX, 0);
-    mpg123_param(mh, MPG123_FORCE_RATE, kSampleRate, 0);
-    mpg123_open(mh, path);
-
-    long rate = 0;
-    int channels = 0, encoding = 0;
-    mpg123_getformat(mh, &rate, &channels, &encoding);
-    mpg123_format_none(mh);
-
-    this->orginalSampleRate = rate;
-    
-    if(mpg123_scan(mh) == MPG123_ERR) {
-        std::cerr << "Malformed audio frame found; exiting!" << std::endl;
-    }
-    
-    statusComment();
-
-    mpg123_id3v2* id3v2;
-    if(mpg123_meta_check(mh) & MPG123_ID3)
-        mpg123_id3(mh, NULL, &id3v2);
-
-    rate = kSampleRate;
-    channels = MPG123_MONO;
-    err = mpg123_format(mh, rate, channels, encoding);
-    int frame_size = kSampleRate / 100;
-
-    std::cout << "decoding..." << std::endl;
-
-    size_t buffer_size = frame_size * 2;
-    unsigned char* buffer = static_cast<unsigned char *>(malloc(buffer_size));
-
-    do {
-        mpg123_volume(mh, volume);
-
-        int encodedFrames = 0;
-
-        for(size_t i = 0; i < frames && err == MPG123_OK; ++i) {
-            err = mpg123_read(mh, buffer, buffer_size, NULL);
-            this->mc->getAudio()->encodeAudioFrame(reinterpret_cast<const short int*>(buffer), false);
-
-            ++encodedFrames;
-        }
-
-        // FIXME: packet queue timing must be handled internally
-        boost::this_thread::sleep(boost::posix_time::milliseconds((frames) * 10));
-    } while (err == MPG123_OK);
-
-    if (err != MPG123_DONE)
-        std::cerr << "Warning: Decoding ended prematurely because: " << (err == MPG123_ERR ? mpg123_strerror(mh) : mpg123_plain_strerror(err)) << std::endl;
-
-    std::cout << "finished decoding" << std::endl;
-
-    free(buffer);
-    mpg123_close(mh);
-    mpg123_delete(mh);
-    mh = NULL;
-    mpg123_exit();
-
-    playback = false;
-    std::cout << ">> play mp3 thread" << std::endl;
-}
-
 void Music::run()
 {
-
-    while(!queuedSongs.empty() || replayCurrentSongFlag)
+  for(;;)
+  {
+    while((!queue.empty() || replayCurrentSongFlag) && playback)
     {
-        playback = true;
-
-	if(!replayCurrentSongFlag)
+      if(!replayCurrentSongFlag)
+      {
+	boost::mutex::scoped_lock lock(songsMutex);
+	currentSong = queue.front();
+	queue.pop_front();
+      }else
+	replayCurrentSongFlag = false;
+      
+      statusComment();
+      if(currentSong)
+      {
+	currentSong->play(mc);
 	{
-	  lastSong = currentSong;
-	  currentSong = queuedSongs.front();
-	  queuedSongs.pop_front();
-	}else
-	  replayCurrentSongFlag = false;
-
-        statusComment();
-        playMp3(currentSong.path.native().c_str());
-        statusComment();
+	  boost::mutex::scoped_lock lock(songsMutex);
+	  history.push_back(currentSong);
+	  currentSong.reset();
+	}
+      }
+      statusComment();
     }
+    boost::unique_lock<boost::mutex> lock(playbackThreadMutex);
     playback = false;
+    playbackThreadCond.wait(lock);
+  }
 
 }
 

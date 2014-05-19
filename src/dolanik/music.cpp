@@ -211,8 +211,6 @@ void Music::statusComment()
 
 void Music::playMp3(const char* path)
 {
-    //int celt_version; //MAXMATI: unused
-
     std::cout << "<< play mp3 thread" << std::endl;
 
     struct sched_param param;
@@ -221,9 +219,10 @@ void Music::playMp3(const char* path)
 
     // FIXME(pcgod): 1-6 to match Mumble client
     uint frames = 6;
-    int audio_quality = 24000;
+    mc->getAudio()->setMaxBandwidth(24000, frames);
 
     int err = mpg123_init();
+
     mh = mpg123_new(NULL, &err);
     mpg123_param(mh, MPG123_VERBOSE, 255, 0);
     mpg123_param(mh, MPG123_RVA, MPG123_RVA_MIX, 0);
@@ -251,69 +250,28 @@ void Music::playMp3(const char* path)
     rate = kSampleRate;
     channels = MPG123_MONO;
     err = mpg123_format(mh, rate, channels, encoding);
-
-    // FIXME(pcgod): maybe broken for mono MP3s
     int frame_size = kSampleRate / 100;
-
-    CELTCodec *cc = mc->getAudio()->getCeltCodec();
-    CELTEncoder *ce = mc->getAudio()->getCeltEncoder();
-
-    cc->celt_encoder_ctl(ce, CELT_SET_PREDICTION(0));
-    cc->celt_encoder_ctl(ce, CELT_SET_BITRATE(audio_quality));
 
     std::cout << "decoding..." << std::endl;
 
     size_t buffer_size = frame_size * 2;
     unsigned char* buffer = static_cast<unsigned char *>(malloc(buffer_size));
 
-    unsigned char **celtBuffer = new unsigned char*[frames];
-    for(uint i = 0; i < frames; ++i)
-        celtBuffer[i] = new unsigned char[128];
-
-    int32_t seq = 0;
-
     do {
         mpg123_volume(mh, volume);
 
         int encodedFrames = 0;
-        int frameLength = std::min(audio_quality / (100 * 8), 127);
 
         for(size_t i = 0; i < frames && err == MPG123_OK; ++i) {
             err = mpg123_read(mh, buffer, buffer_size, NULL);
-            cc->encode(ce, reinterpret_cast<short *>(buffer), celtBuffer[i], frameLength);
+            this->mc->getAudio()->encodeAudioFrame(reinterpret_cast<const short int*>(buffer), false);
 
             ++encodedFrames;
         }
 
-        char packet[1024];
-        char flags = 0;
-        flags |= (mc->getAudio()->getMessageType() << 5);
-        packet[0] = static_cast<unsigned char>(flags);
-
-        MumbleClient::PacketDataStream pds(packet + 1, 1023);
-        seq += frames;
-        pds << seq;
-
-        for(int i = 0; i < encodedFrames; ++i) {
-            std::string s(reinterpret_cast<const char*>(celtBuffer[i]), frameLength);
-            unsigned char head = frameLength;
-
-            if(i < encodedFrames - 1)
-                head |= 0x80;
-
-            pds.append(head);
-            pds.append(s);
-        }
-
-#define TCP 0
-#if TCP
-        mc->SendRawUdpTunnel(packet, pds.size() + 1);
-#else
-        mc->SendUdpMessage(packet, pds.size() + 1);
-#endif
-
+        // FIXME: packet queue timing must be handled internally
         boost::this_thread::sleep(boost::posix_time::milliseconds((frames) * 10));
-    } while (err == MPG123_OK && playback);
+    } while (err == MPG123_OK);
 
     if (err != MPG123_DONE)
         std::cerr << "Warning: Decoding ended prematurely because: " << (err == MPG123_ERR ? mpg123_strerror(mh) : mpg123_plain_strerror(err)) << std::endl;

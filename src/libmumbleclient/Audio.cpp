@@ -3,19 +3,18 @@
 #include "ClientLib.hpp"
 #include "PacketDataStream.hpp"
 
-Audio::Audio() :
+namespace MumbleClient {
+
+Audio::Audio(MumbleClient *mumbleClient) :
+	mumbleClient(mumbleClient),
 	celtCodec(nullptr),
 	celtEncoder(nullptr),
 	totalFrames(0) {
 }
 
 void Audio::flushCheck(const unsigned char buffer[], bool forceFlush) {
-	/*
-	 * WARNING W CHUJ: zmusic do wyslania ramki, kiedy jestesmy pewni,
-	 * ze nie bedziemy juz nic wysylac (zapobieganie, przed ucieciem ostatniej
-	 * paczki ramek) [CHYBA DONE <SEX>] */
-	
-	frameQueue.push(reinterpret_cast<const char*>(buffer));
+	// FIXME: calculate frame size once
+	frameQueue.push(std::string(reinterpret_cast<const char*>(buffer), std::min(static_cast<int>(audioBitrate) / (8 * 100), 127)));
 	
 	if(!forceFlush && queuedFrames < audioFrames)
 		return;
@@ -27,34 +26,36 @@ void Audio::flushCheck(const unsigned char buffer[], bool forceFlush) {
 	
 	data[0] = static_cast<unsigned char>(flags);
 
-	int frames = queuedFrames;
-	queuedFrames = 0;
-	
-	MumbleClient::PacketDataStream pds(data + 1, 1023);
-	pds << totalFrames - frames; // seq
-	
-	for(int i = 0; i < frames; ++i) {
-		const std::string &frame = frameQueue.front();
+	PacketDataStream pds(data + 1, 1023);
+	pds << totalFrames - audioFrames; // seq
+
+	for(unsigned int i = 0; i < audioFrames; ++i) {
+  	std::string &frame = frameQueue.front();
+
 		unsigned char head = static_cast<unsigned char>(frame.size());
-		if(i < frames - 1)
+		if(i < audioFrames - 1)
 			head |= 0x80;
 		pds.append(head);
 		pds.append(frame.data(), frame.size());
+
+		frameQueue.pop();
 	}
-	
-	//sendAudioFrame(data, pds);
+
+	mumbleClient->SendUdpMessage(reinterpret_cast<const char *>(data), pds.size() + 1);
+
+	queuedFrames -= audioFrames;
 }
 
 void Audio::encodeAudioFrame(const short *pcm, bool forceFlush) {
 	int len;
 	unsigned char buffer[512];
-	
+
 	if(codecMsgType == MessageType::UDPVoiceCELTAlpha || codecMsgType == MessageType::UDPVoiceCELTBeta)
 		len = encodeCELTFrame(pcm, buffer);
-	
+
 	if(!len)
 		return;
-	
+
 	++queuedFrames;
 	++totalFrames;
 	
@@ -75,7 +76,7 @@ int Audio::encodeCELTFrame(const short int *pcm, unsigned char *buffer) {
 
 bool Audio::selectCodec(int alpha, int beta, bool preferAlpha) {
 	CELTCodec *newCodec = nullptr;
-	const std::map<int, CELTCodec*> &codecMap = MumbleClient::MumbleClientLib::instance()->getCodecMap();
+	const std::map<int, CELTCodec*> &codecMap = MumbleClientLib::instance()->getCodecMap();
 
 	std::map<int, CELTCodec*>::const_iterator codecIt = preferAlpha ? codecMap.find(alpha) : codecMap.find(beta);
 	if(codecIt == codecMap.end()) {
@@ -110,4 +111,6 @@ void Audio::setMaxBandwidth(unsigned int bitrate, unsigned int frames) {
 	// TODO: max server bandwidth
 	audioBitrate = bitrate;
 	audioFrames = frames;
+}
+
 }

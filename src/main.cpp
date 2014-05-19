@@ -5,17 +5,14 @@
 #include <dolanik/dolanik.h>
 #include <dolanik/music.h>
 
-
-
-
-int  main()
+int main()
 {
 	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
 	dolan->init();
-	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "./Cert.pem");
+	uint id = dolan->connect("mumble.maxmati.pl", "64738", "patelacha_dolan", "", "./Cert.pem");
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
 	sleep(5);
-	music->play("/home/maxmati/Downloads/da.mp3","a","n","c");
+	music->play("sample.mp3","a","n","c");
 	
 	int status = 0;
 	Ice::CommunicatorPtr ic;

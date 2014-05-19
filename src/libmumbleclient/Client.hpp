@@ -25,6 +25,7 @@ class Message;
 class MessageHeader;
 class Settings;
 class User;
+class Audio;
 
 typedef std::list< boost::shared_ptr<User> >::iterator user_list_iterator;
 typedef std::list< boost::shared_ptr<Channel> >::iterator channel_list_iterator;
@@ -69,7 +70,7 @@ public:
     void SetErrorCallback(ErrorCallbackType ec) { error_callback_ = ec; }
     
     //TODO: temporary
-    const Audio *getAudio() const { return &audio_; };
+    Audio *getAudio() { return audio_; };
    
 private:
     friend class MumbleClientLib;
@@ -107,7 +108,7 @@ private:
     std::list< boost::shared_ptr<User> > user_list_;
     std::list< boost::shared_ptr<Channel> > channel_list_;
     bool processing_tcp_queue_;
-    Audio audio_;
+    Audio *audio_;
     
     TextMessageCallbackType text_message_callback_;
     AuthCallbackType auth_callback_;

@@ -6,6 +6,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/bind.hpp>
 
+#include "Audio.hpp"
 #include "Channel.hpp"
 #include "CryptState.hpp"
 #include "Logging.hpp"
@@ -77,6 +78,7 @@ MumbleClient::MumbleClient(boost::asio::io_service* io_service) :
     state_(kStateNew),
     ping_timer_(NULL),
     processing_tcp_queue_(false) {
+      audio_ = new Audio(this); // FIXME: brakuje delete
 }
 
 void MumbleClient::DoPing(const boost::system::error_code& error) {
@@ -154,7 +156,7 @@ void MumbleClient::ParseMessage(const MessageHeader& msg_header, void* buffer) {
     }
     case PbMessageType::CodecVersion: {
         MumbleProto::CodecVersion cv = ConstructProtobufObject<MumbleProto::CodecVersion>(buffer, msg_header.length(), true);
-	audio_.selectCodec(cv.alpha(), cv.beta(), cv.prefer_alpha());
+	audio_->selectCodec(cv.alpha(), cv.beta(), cv.prefer_alpha());
         break;
     }
     case PbMessageType::ServerSync: {

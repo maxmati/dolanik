@@ -6,10 +6,15 @@
 
 #include "CELTCodec.hpp"
 #include "PacketDataStream.hpp"
+#include "Client.hpp"
+
+namespace MumbleClient {
+
+class MumbleClient;
 
 class Audio {
 public:
-	Audio();
+	Audio(MumbleClient *mumbleClient);
 	
 	enum MessageType {
 		UDPVoiceCELTAlpha,
@@ -18,7 +23,6 @@ public:
 		UDPVoiceCELTBeta,
 		UDPVoiceOpus
 	};
-	
 
 	void encodeAudioFrame(const short *pcm, bool forceFlush);
 	bool selectCodec(int alpha, int beta, bool preferAlpha);
@@ -34,6 +38,7 @@ protected:
 	// TODO: void encodeOpusFrame();
 	void flushCheck(const unsigned char buffer[], bool forceFlush);
 
+	MumbleClient *mumbleClient;
 
 	CELTCodec *celtCodec;
 	CELTEncoder *celtEncoder;
@@ -47,5 +52,7 @@ protected:
 
 	std::queue<std::string> frameQueue; // do private
 };
+
+}
 
 #endif

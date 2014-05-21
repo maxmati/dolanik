@@ -154,7 +154,7 @@ void Spotify::play ( SpotifySong::Ptr  song )
   {
     {
       boost::mutex::scoped_lock lock(framesBufferLock);
-      while(framesBuffer.size() > 480 * 6 && playback)//FIXME	
+      while(framesBuffer.size() > 480 * 6 && playback)//FIXME
       {
 	
 	for(int j = 0; j < 6; ++j)//encode 6 frames 10 ms each
@@ -178,6 +178,7 @@ void Spotify::play ( SpotifySong::Ptr  song )
     boost::unique_lock<boost::mutex> lock(playbackNotifyMutex);
     playbackNotifyCond.wait(lock);
   }
+  currentSong.reset();
   
   
 }
@@ -201,8 +202,9 @@ void Spotify::stop ( SpotifySong::Ptr song )
 
 void Spotify::endOfTrack(sp_session* sess)
 {
-  if(auto song = currentSong.lock())
-     song->stop();
+  std::cout<<"endOfTrack()"<<std::endl;
+  assert(session == sess);
+  sp_session_player_unload(session);
 }
 void Spotify::loggedIn(sp_session* sess, sp_error error)
 {
@@ -236,8 +238,16 @@ int Spotify::musicDelivery(sp_session* sess, const sp_audioformat* format,
   const char* frames = reinterpret_cast<const char*>(_frames);
   
   boost::mutex::scoped_lock lock(framesBufferLock);
+  if(framesBuffer.size() > 32768)
+    return 0;
+  
   if(framesBuffer.empty())
+  {
     framesBufferFormat = *format;
+    std::cout<<"musicDelivery() creating new framesBuffer format: channels="
+      <<format->channels<<" rate="<<format->sample_rate
+      <<" type="<<format->sample_type<<std::endl;
+  }
   else //FIXME
   {
     assert(framesBufferFormat.channels == format->channels);
@@ -271,8 +281,9 @@ void Spotify::notifyMainThread(sp_session* sess)
 }
 void Spotify::playTokenLost(sp_session* sess)
 {
-  if(auto song = currentSong.lock())
-    this->stop(song);
+  std::cout<<"playTokenLost()"<<std::endl;
+  assert(session == sess);
+  sp_session_player_unload(session);
 }
 
 void Spotify::run()

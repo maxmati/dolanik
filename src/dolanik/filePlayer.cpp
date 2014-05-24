@@ -46,8 +46,9 @@ void FilePlayer::initPacket ( AVPacket* packet )
 FileSong::Ptr FilePlayer::createSong ( std::string path)
 {
   FileSong::Ptr song(new FileSong(*this));
-  AVCodec *input_codec;
+  AVCodec *input_codec = NULL;
   int error;
+  int streamId = -1;
   if ((error = avformat_open_input(&(song->formatContext), path.c_str(), NULL, NULL)) < 0) 
   {
     std::cerr<<"Could not open input file '"<<path
@@ -60,25 +61,33 @@ FileSong::Ptr FilePlayer::createSong ( std::string path)
       <<"')"<<std::endl;
     return FileSong::Ptr();
   }
-  if (song->formatContext->nb_streams != 1) 
+  for(unsigned int i = 0; i<song->formatContext->nb_streams; ++i )
   {
-    std::cerr<<"Expected one audio input stream, but found "
-    <<song->formatContext->nb_streams<<std::endl;
+    if(song->formatContext->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
+    {
+      streamId = i;
+      break;
+    }
+  }
+  if(streamId <0)
+  {
+    std::cerr<<"Could not find audio stream"<<std::endl;
     return FileSong::Ptr();
   }
-  if (!(input_codec = avcodec_find_decoder(song->formatContext->streams[0]->codec->codec_id))) 
+  input_codec = avcodec_find_decoder(song->formatContext->streams[streamId]->codec->codec_id);
+  if (!input_codec) 
   {
     std::cerr<<"Could not find input codec"<<std::endl;
     return FileSong::Ptr();
   }
-  if ((error = avcodec_open2(song->formatContext->streams[0]->codec,
+  if ((error = avcodec_open2(song->formatContext->streams[streamId]->codec,
     input_codec, NULL)) < 0) 
   {
     std::cerr<<"Could not open input codec (error '"<<get_error_text(error)
       <<"')"<<std::endl;
     return FileSong::Ptr();
   }
-  song->codecContext = song->formatContext->streams[0]->codec;
+  song->codecContext = song->formatContext->streams[streamId]->codec;
   
   return song;
 }

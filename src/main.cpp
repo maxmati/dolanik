@@ -7,26 +7,37 @@
 #include <dolanik/dolanik.h>
 #include <dolanik/music.h>
 #include "dolanik/mp3Player.h"
+#include "dolanik/filePlayer.h"
 
 int main()
 {
+
 	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
 	dolan->init();
 	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "./Cert.pem");
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
-	Spotify spotify("maxmati", "xxx");
+	//Spotify spotify("maxmati", "xxx");
+	FilePlayer filePlayer;
+	sleep(5);
+	FileSong::Ptr ss = filePlayer.createSong("/home/maxmati/Downloads/da.mp3");
+	music->play(ss);
+	//ss->play(music->mc);
+	sleep(1);
+	//ss->stop();
+	/*
 	SpotifySong::Ptr sSong =
-	spotify.createSong("spotify:track:5kuDRH5Mb2JazzzKhMLL3z");
+	spotify.createSong("spotify:track:1iu2z6r4LLOqyK2auNIrv6");
+	
 	Mp3Player player;
 	Mp3Song::Ptr mp3Song = player.createSong("/home/maxmati/Downloads/da.mp3","title","album", "artist");
 	sleep(5);
 	//music->play( mp3Song );
-	music->play( sSong );
+	music->play( sSong );*/
 	sleep(1000);
 	
 	
 	//music->play("/home/maxmati/Downloads/da.mp3","a","n","c");
-	
+	/*
 	int status = 0;
 	Ice::CommunicatorPtr ic;
 	try {
@@ -55,9 +66,9 @@ int main()
 		}
 	}
 
-
+	*/
 	char a;
 	std::cin >> a;
 	std::cout << a;
-	return status;
+	return 0;
 }

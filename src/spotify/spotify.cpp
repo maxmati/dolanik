@@ -129,7 +129,7 @@ boost::shared_ptr< SpotifySong > Spotify::createSong(std::string uri)
     track = sp_link_as_track(link);
   }
   boost::shared_ptr<SpotifySong> song(new SpotifySong(track,this));
-  
+
   {
     boost::lock_guard<boost::mutex> lock(this->songsMutex);
     this->songs.push_back(song);

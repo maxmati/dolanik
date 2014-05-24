@@ -46,6 +46,12 @@ message (STATUS "Version: " ${CELT_VERSION})
 message (STATUS "Include dirs: " ${CELT_INCLUDEDIR})
 message (STATUS "")
 
+# LibAV
+find_package (LibAV REQUIRED)
+message (STATUS "LibAV found!")
+message (STATUS "Include dirs: " ${LIBAV_INCLUDE_DIRS})
+message (STATUS "Libraries: " ${LIBAV_LIBRARIES} ) 
+message (STATUS "")
 
 # Mpg123
 find_package (MPG123 REQUIRED)
@@ -114,4 +120,4 @@ target_link_libraries(dolan libmumbleclient mpg123)
 
 add_executable(dolanik ${dolanik_SRC} 
 ${DOLANIK_ICE_SOURCES})
-target_link_libraries(dolanik dolan ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} ${LIBSPOTIFY_LIBRARY_DEBUG})
+target_link_libraries(dolanik dolan ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} ${LIBSPOTIFY_LIBRARY_DEBUG} ${LIBAV_LIBRARIES})

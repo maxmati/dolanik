@@ -89,6 +89,16 @@ FileSong::Ptr FilePlayer::createSong ( std::string path)
   }
   song->codecContext = song->formatContext->streams[streamId]->codec;
   
+  AVDictionaryEntry *tag = NULL;
+  if((tag = av_dict_get(song->formatContext->metadata, "album", NULL, NULL)))
+    song->album = tag->value;
+  if((tag = av_dict_get(song->formatContext->metadata, "title", NULL, NULL)))
+    song->title = tag->value;
+  if((tag = av_dict_get(song->formatContext->metadata, "artist", NULL, NULL)))
+    song->artist = tag->value;
+
+  song->duration = song->formatContext->duration/AV_TIME_BASE;
+
   return song;
 }
 void FilePlayer::play ( FileSong& song, MumbleClient::MumbleClient* mc )

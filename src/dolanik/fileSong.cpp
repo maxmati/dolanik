@@ -53,22 +53,22 @@ void FileSong::play ( MumbleClient::MumbleClient* mc )
   player.play(*this, mc);
 }
 
-int FileSong::getDuration()//TODO
+int FileSong::getDuration()
 {
-  return 0;
+  return duration;
 }
 
-std::string FileSong::getTitle()//TODO
+std::string FileSong::getTitle()
 {
-  return std::string();
+  return title;
 }
 
-std::string FileSong::getAlbum()//TODO
+std::string FileSong::getAlbum()
 {
-  return std::string();
+  return album;
 }
 
-std::string FileSong::getArtist()//TODO
+std::string FileSong::getArtist()
 {
-  return std::string();
+  return artist;
 }

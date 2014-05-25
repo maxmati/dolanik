@@ -44,4 +44,9 @@ private:
   std::queue<boost::shared_ptr<char>> framesBuffer;
   FilePlayer& player;
   bool playback;
+
+  std::string album;
+  std::string title;
+  std::string artist;
+  int duration;
 };

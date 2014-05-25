@@ -6,7 +6,6 @@
 
 #include <dolanik/dolanik.h>
 #include <dolanik/music.h>
-#include "dolanik/mp3Player.h"
 #include "dolanik/filePlayer.h"
 
 int main()
@@ -28,10 +27,6 @@ int main()
 	SpotifySong::Ptr sSong =
 	spotify.createSong("spotify:track:1iu2z6r4LLOqyK2auNIrv6");
 	
-	Mp3Player player;
-	Mp3Song::Ptr mp3Song = player.createSong("/home/maxmati/Downloads/da.mp3","title","album", "artist");
-	sleep(5);
-	//music->play( mp3Song );
 	music->play( sSong );*/
 	sleep(1000);
 	

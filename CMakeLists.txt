@@ -53,13 +53,6 @@ message (STATUS "Include dirs: " ${LIBAV_INCLUDE_DIRS})
 message (STATUS "Libraries: " ${LIBAV_LIBRARIES} ) 
 message (STATUS "")
 
-# Mpg123
-find_package (MPG123 REQUIRED)
-message (STATUS "MPG123 found!")
-message (STATUS "Include dirs: " ${MPG123_INCLUDE_DIR} )
-message (STATUS "Libraries: " ${MPG123_LIBRARIES})
-message (STATUS "")
-
 # ZeroC Ice
 find_package (ZeroCIce REQUIRED)
 message (STATUS "ZeroCIce found!")
@@ -116,7 +109,7 @@ target_link_libraries(
 )
 
 add_library(dolan ${dolan_SRC})
-target_link_libraries(dolan libmumbleclient mpg123)
+target_link_libraries(dolan libmumbleclient)
 
 add_executable(dolanik ${dolanik_SRC} 
 ${DOLANIK_ICE_SOURCES})

@@ -20,6 +20,10 @@
 #include "filePlayer.h"
 #include "fileSong.h"
 
+#include <thread>
+
+#include <dolanik/music.h>
+
 #include <boost/thread.hpp>
 
 static char *const get_error_text(const int error)
@@ -90,72 +94,41 @@ FileSong::Ptr FilePlayer::createSong ( std::string path)
   song->codecContext = song->formatContext->streams[streamId]->codec;
   
   AVDictionaryEntry *tag = NULL;
-  if((tag = av_dict_get(song->formatContext->metadata, "album", NULL, NULL)))
+  if((tag = av_dict_get(song->formatContext->metadata, "album", NULL, 0)))
     song->album = tag->value;
-  if((tag = av_dict_get(song->formatContext->metadata, "title", NULL, NULL)))
+  if((tag = av_dict_get(song->formatContext->metadata, "title", NULL, 0)))
     song->title = tag->value;
-  if((tag = av_dict_get(song->formatContext->metadata, "artist", NULL, NULL)))
+  if((tag = av_dict_get(song->formatContext->metadata, "artist", NULL, 0)))
     song->artist = tag->value;
 
   song->duration = song->formatContext->duration/AV_TIME_BASE;
 
   return song;
 }
-void FilePlayer::play ( FileSong& song, MumbleClient::MumbleClient* mc )
+void FilePlayer::play ( FileSong& song, Dolanik::Music& music)
 {
-  mc->getAudio()->setMaxBandwidth(24000, 6);//FIXME
   int finished = 0;
+  bool initialized = false;
   AVFrame* frame = av_frame_alloc();
+  
   do{
     
     decodeAudioFrame(song, frame, &finished);
+    
     if(finished)
       break;
-    int ch, planeSize;
-    int planar = av_sample_fmt_is_planar(song.codecContext->sample_fmt);
-    int dataSize = av_samples_get_buffer_size(&planeSize, song.codecContext->channels,
-	                                       frame->nb_samples,song.codecContext->sample_fmt,
-					       1);
-    int sampleSize = planeSize / frame->nb_samples;
     
-    assert(planar);//FIXME: add non planar and multichanel
+    if(!initialized)
+    {
+      music.setInputFormat(frame->channel_layout, frame->sample_rate,
+                           (AVSampleFormat)frame->format);
+      initialized = true;
+    }
     
-    for(int i = 0; i< frame->nb_samples; ++i)
-    {
-      boost::shared_ptr<char> sample( new char[sampleSize]);
-      memcpy(
-	sample.get(),
-	&(frame->extended_data[0][i*sampleSize]),
-	sizeof(char)*sampleSize
-      );
-      song.framesBuffer.push(sample);
-    }
-  
-    while(song.framesBuffer.size() > 480 * 6)//FIXME
-    {
-      for(int j = 0; j < 6; ++j)//encode 6 frames 10 ms each
-      {
-	//FIXME
-	char* buffer = new char[480*sampleSize];//480 samples 2 bytes each. 480 samples at 48khz gives 10ms
-	for(int i = 0; i < 480; ++i)
-	{
-	  boost::shared_ptr<char> frame = song.framesBuffer.front();
-	  song.framesBuffer.pop();
-	  memcpy(buffer+i*sampleSize, frame.get(), sizeof(char)*sampleSize);
-	}
-	mc->getAudio()->encodeAudioFrame(reinterpret_cast<const short int*>(buffer), false);
-      }
-      boost::this_thread::sleep(boost::posix_time::milliseconds(6*10));
-    }
-           
-  /*if (planar && song.codecContext->channels > 1) {
-    uint8_t *out = ((uint8_t *)samples) + planeSize;
-    for (ch = 1; ch < song.codecContext->channels; ch++) 
-    {
-      memcpy(out, frame->extended_data[ch], planeSize );
-      out += planeSize;
-    }
-  }*/
+    std::this_thread::sleep_for(music.send(
+      (const char**)frame->extended_data,
+      frame->nb_samples
+    ));
     
   }while(!finished && song.playback);
   av_frame_free(&frame);

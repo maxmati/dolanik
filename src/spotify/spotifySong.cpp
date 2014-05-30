@@ -34,8 +34,8 @@ SpotifySong::SpotifySong(sp_track* track, Spotify* spotify ):
 {
   boost::lock_guard<boost::mutex> lock(spotify->spotifyApiMutex);
   sp_track_add_ref(this->track);
-  sp_error err = sp_track_error(this->track);
-  bool loaded = sp_track_is_loaded(this->track);
+//   sp_error err = sp_track_error(this->track);
+//   bool loaded = sp_track_is_loaded(this->track);
 }
 bool SpotifySong::loaded()
 {
@@ -74,10 +74,9 @@ std::string SpotifySong::getArtist()
 {
   return this->artistName;
 }
-void SpotifySong::play( MumbleClient::MumbleClient* mc )
+void SpotifySong::play( Dolanik::Music& music )
 {
-  this->mc = mc;
-  this->spotify->play(shared_from_this());
+  this->spotify->play(shared_from_this(), music);
 }
 void SpotifySong::stop()
 {

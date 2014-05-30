@@ -15,19 +15,20 @@ int main()
 	dolan->init();
 	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "./Cert.pem");
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
-	//Spotify spotify("maxmati", "xxx");
-	FilePlayer filePlayer;
+	Spotify spotify("maxmati", "xxx");
+	//FilePlayer filePlayer;
+  SpotifySong::Ptr sSong =
+  spotify.createSong("spotify:track:0Wif6GC74X6oWrGrPoru4K");
 	sleep(5);
-	FileSong::Ptr ss = filePlayer.createSong("/home/maxmati/Downloads/da.mp3");
-	music->play(ss);
+	//FileSong::Ptr ss = filePlayer.createSong("/home/maxmati/Downloads/da.mp3");
+	//music->play(ss);
 	//ss->play(music->mc);
 	sleep(1);
 	//ss->stop();
-	/*
-	SpotifySong::Ptr sSong =
-	spotify.createSong("spotify:track:1iu2z6r4LLOqyK2auNIrv6");
-	
-	music->play( sSong );*/
+
+
+	sleep(2);
+	music->play( sSong );
 	sleep(1000);
 	
 	

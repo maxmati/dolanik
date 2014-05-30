@@ -47,10 +47,12 @@ message (STATUS "Include dirs: " ${CELT_INCLUDEDIR})
 message (STATUS "")
 
 # LibAV
-find_package (LibAV REQUIRED)
-message (STATUS "LibAV found!")
-message (STATUS "Include dirs: " ${LIBAV_INCLUDE_DIRS})
-message (STATUS "Libraries: " ${LIBAV_LIBRARIES} ) 
+FIND_PACKAGE(FFmpeg COMPONENTS AVFORMAT AVCODEC AVUTIL SWRESAMPLE REQUIRED)
+message (STATUS "FFmpeg found!")
+message (STATUS "FFmpeg Include dirs: " ${FFMPEG_INCLUDE_DIRS})
+message (STATUS "FFmpeg Libraries: " ${FFMPEG_LIBRARIES} ) 
+message (STATUS "swresample Include dirs: " ${SWRESAMPLE_INCLUDE_DIRS})
+message (STATUS "swresample Libraries: " ${SWRESAMPLE_LIBRARIES} ) 
 message (STATUS "")
 
 # ZeroC Ice
@@ -89,6 +91,8 @@ INCLUDE_DIRECTORIES(
   ${CRYPT_INCLUDE_DIR}
   ${LIBMUMBLECLIENT_PROTO_INCLUDE_DIR}
   ${DOLANIK_ICE_INCLUDE_DIR}
+  ${FFMPEG_INCLUDE_DIRS}
+  ${SWRESAMPLE_INCLUDE_DIRS}
 )
 
 add_library(
@@ -108,9 +112,26 @@ target_link_libraries(
   ${CRYPT_LIBRARIES}
 )
 
-add_library(dolan ${dolan_SRC})
-target_link_libraries(dolan libmumbleclient)
+add_library(
+  dolan 
+  ${dolan_SRC}
+)
+target_link_libraries(
+  dolan
+  libmumbleclient
+)
 
-add_executable(dolanik ${dolanik_SRC} 
-${DOLANIK_ICE_SOURCES})
-target_link_libraries(dolanik dolan ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} ${LIBSPOTIFY_LIBRARY_DEBUG} ${LIBAV_LIBRARIES})
+add_executable(
+  dolanik
+  ${dolanik_SRC} 
+  ${DOLANIK_ICE_SOURCES}
+)
+target_link_libraries(
+  dolanik
+  dolan
+  ${ZeroCIceCore_LIBRARY} 
+  ${ZeroCIceUtil_LIBRARY}
+  ${LIBSPOTIFY_LIBRARY_DEBUG} 
+  ${FFMPEG_LIBRARIES}
+  ${SWRESAMPLE_LIBRARIES}
+)

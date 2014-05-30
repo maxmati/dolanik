@@ -8,7 +8,7 @@ namespace MumbleClient
 class MumbleClient;
 }
 namespace Dolanik{
-class Musik;
+class Music;
   
 class Song
 {
@@ -18,7 +18,7 @@ public:
   virtual std::string getAlbum() = 0;
   virtual std::string getTitle() = 0;
   virtual int getDuration() = 0;
-  virtual void play(MumbleClient::MumbleClient* mc) = 0;
+  virtual void play(Music& music) = 0;
   virtual void stop() = 0;
 protected:
 private:

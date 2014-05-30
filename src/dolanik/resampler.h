@@ -17,58 +17,28 @@
  *
  */
 
-#include "fileSong.h"
-#include "filePlayer.h"
+#pragma once
 
-#define __STDC_CONSTANT_MACROS 
+#define __STDC_CONSTANT_MACROS
 extern "C"
 {
-  #include <libavformat/avformat.h>
+  #include <libavutil/opt.h>
+  #include <libavutil/channel_layout.h>
+  #include <libavutil/samplefmt.h>
+  #include <libswresample/swresample.h>
 }
 #undef __STDC_CONSTANT_MACROS
 
-
-FileSong::FileSong ( FilePlayer& player )
-  :codecContext(NULL),
-  formatContext(NULL),
-  player(player),
-  playback(true)
+class Resampler
 {
-
-}
-FileSong::~FileSong()
-{
-  if(codecContext)
-    avformat_close_input(&formatContext);
-}
-
-void FileSong::stop()
-{
-  playback = false;
-}
-
-void FileSong::play ( Dolanik::Music& music )
-{
-  playback = true;
-  player.play(*this, music);
-}
-
-int FileSong::getDuration()
-{
-  return duration;
-}
-
-std::string FileSong::getTitle()
-{
-  return title;
-}
-
-std::string FileSong::getAlbum()
-{
-  return album;
-}
-
-std::string FileSong::getArtist()
-{
-  return artist;
-}
+public:
+  Resampler(int64_t dstChannelLayout, uint dstRate, AVSampleFormat dstSampleFmt);
+  void setInputFormat(int64_t srcChannelLayout, uint srcRate, AVSampleFormat srcSampleFmt);
+  int calculateDstSamplesNumber(int srcSamplesNumber);
+  int resample( const char** srcData, int srcSamples, char* dstData, int dstSamples );
+  ~Resampler();
+private:
+  uint dstRate;
+  int srcRate;
+  SwrContext *swrCtx;
+};

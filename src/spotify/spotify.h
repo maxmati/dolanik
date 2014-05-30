@@ -18,7 +18,7 @@ public:
   ~Spotify();
   
   boost::shared_ptr<SpotifySong> createSong(std::string uri);
-  void play( SpotifySong::Ptr song );
+  void play( SpotifySong::Ptr song, Dolanik::Music& music);
   void stop( SpotifySong::Ptr song );
   
   boost::mutex spotifyApiMutex;
@@ -44,6 +44,7 @@ private:
   static void playTokenLostWrapper(sp_session* sess);
   
   void run();
+  uint getSampleSize(sp_sampletype& type);
   
   static Spotify* instance;
   

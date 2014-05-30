@@ -33,9 +33,13 @@ Music::Music(MumbleClient::MumbleClient* _mc)
   :playback(false),
   replayCurrentSongFlag(false),
   volume(0.2),
-  mc(_mc)
+  mc(_mc),
+  sampleRate(48000),
+  sampleSize(2),
+  resampler(AV_CH_LAYOUT_MONO,sampleRate, AV_SAMPLE_FMT_S16)
 {
     mc->SetTextMessageCallback(boost::bind(&Music::onTxtMsg,this, _1));
+    mc->getAudio()->setMaxBandwidth(24000, 6);//FIXME
     boost::thread(boost::bind(&Music::run, this));
 }
 
@@ -43,6 +47,49 @@ Music::~Music()
 {
 
 }
+
+std::chrono::microseconds Music::send ( const char** pcm, uint nbSamples )
+{
+	uint dstNbSamples = resampler.calculateDstSamplesNumber(nbSamples);
+	std::unique_ptr<char[]> data(new char[dstNbSamples*sampleSize]);
+	uint nbSamplesAfterResample = resampler.resample(pcm, nbSamples,
+																									 data.get(), dstNbSamples);
+
+	for(uint i = 0; i< nbSamplesAfterResample; ++i)
+	{
+	  boost::shared_ptr<char> sample( new char[sampleSize]);
+	  memcpy(
+			sample.get(),
+			&(data[i*sampleSize]),
+			sizeof(char)*sampleSize
+	  );
+	  pcmBuffer.push(sample);
+	}
+
+	if(pcmBuffer.size() > 480 * 6)//FIXME
+	{
+		for(int j = 0; j < 6; ++j)//encode 6 frames 10 ms each
+		{
+			//FIXME
+			char* buffer = new char[480*sampleSize];//480 samples 2 bytes each. 480 samples at 48khz gives 10ms
+			for(int i = 0; i < 480; ++i)
+			{
+				boost::shared_ptr<char> frame = pcmBuffer.front();
+				pcmBuffer.pop();
+				memcpy(buffer+i*sampleSize, frame.get(), sizeof(char)*sampleSize);
+			}
+			mc->getAudio()->encodeAudioFrame(reinterpret_cast<const short int*>(buffer), false);
+			delete[] buffer;
+		}
+		return std::chrono::milliseconds(60);
+	}
+	return std::chrono::microseconds(0);
+}
+void Music::setInputFormat ( int64_t srcChannelLayout, uint srcRate, AVSampleFormat srcSampleFmt )
+{
+  resampler.setInputFormat(srcChannelLayout,srcRate,srcSampleFmt);
+}
+
 
 double Music::getVolume()
 {
@@ -230,7 +277,7 @@ void Music::run()
       statusComment();
       if(currentSong)
       {
-	currentSong->play(mc);
+	currentSong->play(*this);
 	{
 	  boost::mutex::scoped_lock lock(songsMutex);
 	  history.push_back(currentSong);

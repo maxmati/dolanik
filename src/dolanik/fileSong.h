@@ -33,7 +33,7 @@ public:
   FileSong(FilePlayer& player);
   ~FileSong();
   virtual void stop();
-  virtual void play ( MumbleClient::MumbleClient* mc );
+  virtual void play ( Dolanik::Music& music );
   virtual int getDuration();
   virtual std::string getTitle();
   virtual std::string getAlbum();
@@ -41,7 +41,6 @@ public:
 private:
   AVCodecContext* codecContext;
   AVFormatContext* formatContext;
-  std::queue<boost::shared_ptr<char>> framesBuffer;
   FilePlayer& player;
   bool playback;
 

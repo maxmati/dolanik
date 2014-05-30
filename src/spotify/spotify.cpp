@@ -3,10 +3,11 @@
 #include <cassert>
 
 #include <iostream>
-#include <bits/stl_queue.h>
+#include <chrono>
+#include <thread>
 #include <boost/bind.hpp>
 
-#include <libmumbleclient/Client.hpp>
+#include <dolanik/music.h>
 
 
 
@@ -137,46 +138,75 @@ boost::shared_ptr< SpotifySong > Spotify::createSong(std::string uri)
   
   return song;
 }
-void Spotify::play ( SpotifySong::Ptr  song )
+uint Spotify::getSampleSize ( sp_sampletype& type )
+{
+  if(type == SP_SAMPLETYPE_INT16_NATIVE_ENDIAN)
+    return 2;
+  else
+    assert(false);
+}
+
+void Spotify::play ( SpotifySong::Ptr song, Dolanik::Music& music )
 {
   {
+    sp_error error;//FIXME: wait until loaded
     boost::lock_guard<boost::mutex> apiLock(this->spotifyApiMutex);
-    sp_session_player_load(this->session,song->track);
-    sp_session_player_play(this->session, true);
+    error = sp_session_player_load(this->session,song->track);
+    error = sp_session_player_play(this->session, true);
   }
-  
+  bool initialized = false;
+  uint sampleSize;
   this->currentSong = song;
-  
-  song->mc->getAudio()->setMaxBandwidth(24000, 6);//FIXME
-  
+ 
   playback = true;
   while(playback)
   {
+    
+    std::chrono::microseconds sleepTime(0);
     {
       boost::mutex::scoped_lock lock(framesBufferLock);
-      while(framesBuffer.size() > 480 * 6 && playback)//FIXME
+      if(framesBuffer.size() > 0 && !initialized)
       {
-	
-	for(int j = 0; j < 6; ++j)//encode 6 frames 10 ms each
-	{
-	  //FIXME
-	  char* buffer = new char[480*2];//480 samples 2 bytes each. 480 samples at 48khz gives 10ms
-	  for(int i = 0; i < 480; ++i)
-	  {
-	    boost::shared_ptr<char> frame = framesBuffer.front();
-	    framesBuffer.pop();
-	    memcpy(buffer+i*2, frame.get(), sizeof(char)*2);
-	  }
-	  song->mc->getAudio()->encodeAudioFrame(reinterpret_cast<const short int*>(buffer), false);
-	}
-	
-	lock.unlock();
-	boost::this_thread::sleep(boost::posix_time::milliseconds(6*10));
-	lock.lock();
+        int64_t channelLayout;
+        if(framesBufferFormat.channels == 1)
+          channelLayout = AV_CH_LAYOUT_MONO;
+        else if(framesBufferFormat.channels == 2)
+          channelLayout = AV_CH_LAYOUT_STEREO;
+        else
+          assert(false);
+        
+        AVSampleFormat format;
+        if(framesBufferFormat.sample_type == SP_SAMPLETYPE_INT16_NATIVE_ENDIAN)
+          format = AV_SAMPLE_FMT_S16;
+        else
+          assert(false);
+        
+        music.setInputFormat(channelLayout,framesBufferFormat.sample_rate,
+                             format);
+        
+        sampleSize = getSampleSize(framesBufferFormat.sample_type);
+        initialized = true;
+      }
+      if(framesBuffer.size() > 480)
+      {
+        //FIXME
+        char* buffer = new char[480*sampleSize*framesBufferFormat.channels];//480 samples at 48khz gives 10ms
+        for(int i = 0; i < 480; ++i)
+        {
+          boost::shared_ptr<char> frame = framesBuffer.front();
+          framesBuffer.pop();
+          memcpy(buffer+i*sampleSize*framesBufferFormat.channels, frame.get(),
+                 sizeof(char)*sampleSize*framesBufferFormat.channels);
+        }
+        sleepTime = music.send((const char**)&buffer,480);
+        delete[] buffer;
+      } else {
+        lock.unlock();
+        boost::unique_lock<boost::mutex> notifyLock(playbackNotifyMutex);
+        playbackNotifyCond.wait(notifyLock);
       }
     }
-    boost::unique_lock<boost::mutex> lock(playbackNotifyMutex);
-    playbackNotifyCond.wait(lock);
+    std::this_thread::sleep_for(sleepTime);
   }
   currentSong.reset();
   
@@ -255,18 +285,17 @@ int Spotify::musicDelivery(sp_session* sess, const sp_audioformat* format,
     assert(framesBufferFormat.sample_type == format->sample_type);
   }
   
+  uint sampleSize = getSampleSize(framesBufferFormat.sample_type);
+  
   for(int i = 0; i<numFrames; ++i)
   {
-    //FIXME: Temporary taking single channel
-    //boost::shared_ptr<char> frame (new char[format->channels * 2]);
-    //memcpy(frame.get(), frames, sizeof(char)*format->channels * 2);
-    boost::shared_ptr<char> frame (new char[2]);
-    memcpy(frame.get(), frames, sizeof(char)*2);
+    boost::shared_ptr<char> frame (new char[format->channels * sampleSize]);
+    memcpy(frame.get(), frames, sizeof(char)*format->channels * sampleSize);
     framesBuffer.push(frame);
-    frames += format->channels * 2;
+    frames += format->channels * sampleSize;
   }
-  std::cerr<<"musicDelivery() loaded "<<numFrames<<" frames. Have "
-    <<framesBuffer.size()<<" in buffer."<<std::endl;
+//   std::cerr<<"musicDelivery() loaded "<<numFrames<<" frames. Have "
+//     <<framesBuffer.size()<<" in buffer."<<std::endl;
   
   playbackNotifyCond.notify_one();
   return numFrames;

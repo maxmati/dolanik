@@ -38,7 +38,7 @@ class FilePlayer
 {
 public:
   FileSong::Ptr createSong( std::string path );
-  void play(FileSong& song, MumbleClient::MumbleClient* mc);
+  void play(FileSong& song, Dolanik::Music&);
   FilePlayer();
   ~FilePlayer();
 private:

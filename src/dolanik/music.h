@@ -22,6 +22,8 @@
 #include <string>
 #include <deque>
 #include <atomic>
+#include <chrono>
+#include <queue>
 
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
@@ -29,6 +31,7 @@
 
 
 #include <dolanik/song.h>
+#include <dolanik/resampler.h>
 
 namespace Dolanik{
   class Song;
@@ -49,6 +52,10 @@ namespace Dolanik{
     virtual double getVolume();
     virtual void setVolume(double volume);
     Song::Ptr getCurrentSong();///Thread safe
+    
+    void setInputFormat(int64_t srcChannelLayout, uint srcRate, AVSampleFormat srcSampleFmt);
+    std::chrono::microseconds send(const char** pcm, uint nbSamples);
+    
     
     virtual void run();
     virtual ~Music();
@@ -72,6 +79,14 @@ namespace Dolanik{
     Song::Ptr currentSong;
     std::list<Song::Ptr> history;
     std::deque<Song::Ptr> queue;
+    
+    const uint sampleRate;
+    const size_t sampleSize;
+    
+    Resampler resampler;
+    
+    std::queue<boost::shared_ptr<char>> pcmBuffer;
+    
   };
 
 }

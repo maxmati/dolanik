@@ -22,6 +22,11 @@
 #include <dolanik/song.h>
 #include <boost/enable_shared_from_this.hpp>
 
+namespace Dolanik
+{
+class Music;
+}
+
 namespace MumbleClient
 {
 class MumbleClient;
@@ -46,7 +51,7 @@ public:
   virtual std::string getAlbum();
   virtual std::string getArtist();
   virtual void stop();
-  virtual void play( MumbleClient::MumbleClient* mc);
+  virtual void play( Dolanik::Music& music);
 private:
   bool updateMetadata();//< Use only from callback no locking
   
@@ -60,7 +65,5 @@ private:
   sp_album* album;
   
   Spotify* spotify;
-  
-  MumbleClient::MumbleClient* mc;
 };
 

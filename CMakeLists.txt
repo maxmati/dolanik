@@ -46,13 +46,18 @@ message (STATUS "Version: " ${CELT_VERSION})
 message (STATUS "Include dirs: " ${CELT_INCLUDEDIR})
 message (STATUS "")
 
-# LibAV
-FIND_PACKAGE(FFmpeg COMPONENTS AVFORMAT AVCODEC AVUTIL SWRESAMPLE REQUIRED)
+# FFmpeg
+FIND_PACKAGE(FFmpeg REQUIRED)
 message (STATUS "FFmpeg found!")
 message (STATUS "FFmpeg Include dirs: " ${FFMPEG_INCLUDE_DIRS})
-message (STATUS "FFmpeg Libraries: " ${FFMPEG_LIBRARIES} ) 
-message (STATUS "swresample Include dirs: " ${SWRESAMPLE_INCLUDE_DIRS})
-message (STATUS "swresample Libraries: " ${SWRESAMPLE_LIBRARIES} ) 
+message (STATUS "FFmpeg Libraries: " ${FFMPEG_LIBRARIES} )  
+message (STATUS "")
+
+# LibAVFilter
+FIND_PACKAGE(LibAVFilter REQUIRED)
+message (STATUS "AVFilter found!")
+message (STATUS "AVFilter Include dirs: " ${AVFILTER_INCLUDE_DIRS})
+message (STATUS "AVFilter Libraries: " ${AVFILTER_LIBRARY} ) 
 message (STATUS "")
 
 # ZeroC Ice
@@ -92,7 +97,7 @@ INCLUDE_DIRECTORIES(
   ${LIBMUMBLECLIENT_PROTO_INCLUDE_DIR}
   ${DOLANIK_ICE_INCLUDE_DIR}
   ${FFMPEG_INCLUDE_DIRS}
-  ${SWRESAMPLE_INCLUDE_DIRS}
+  ${AVFILTER_INCLUDE_DIRS}
 )
 
 add_library(
@@ -133,5 +138,5 @@ target_link_libraries(
   ${ZeroCIceUtil_LIBRARY}
   ${LIBSPOTIFY_LIBRARY_DEBUG} 
   ${FFMPEG_LIBRARIES}
-  ${SWRESAMPLE_LIBRARIES}
+  ${AVFILTER_LIBRARIES}
 )

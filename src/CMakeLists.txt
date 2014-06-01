@@ -3,8 +3,12 @@ add_subdirectory(libmumbleclient)
 add_subdirectory(ice)
 add_subdirectory(spotify)
 
-list(APPEND dupa_SRC src/misc.cpp)
-list(APPEND dolanik_SRC src/main.cpp)
+list(
+  APPEND
+  dolanik_SRC
+  src/main.cpp
+  src/misc.cpp
+)
 
 set(dolan_SRC "${dolan_SRC}" PARENT_SCOPE)
 set(dolanik_SRC "${dolanik_SRC}" PARENT_SCOPE)

@@ -100,8 +100,6 @@ Song::Ptr Music::getCurrentSong()
   return currentSong;
 }
 
-
-
 void Music::stop()
 {
     playback = false;
@@ -120,6 +118,7 @@ void Music::setVolume(double volume)
   volume = std::min(volume,2.0);
   this->volume = volume;
   statusComment();
+  resampler.setVolume(volume);
 }
 
 void Music::adjustVolume(double delta)
@@ -128,6 +127,7 @@ void Music::adjustVolume(double delta)
     volume = std::max(volume,0.0);
     volume = std::min(volume,2.0);
     statusComment();
+    resampler.setVolume(volume);
 }
 void Music::replay()
 {
@@ -252,7 +252,7 @@ void Music::statusComment()
     if(playback && currentSong)
         msg += "I'm currently playing song : <br />"
 	    + currentSong->getTitle() +" : " + currentSong->getArtist()
-	    + "(Length: "/*+ Anal::toStr(getCurrentSongLength()) +*/"s ) <br />";
+	    + "(Length: "+ Anal::toStr(currentSong->getDuration()) +"s ) <br />";
     if(!queue.empty())
       msg += "Playlist: <br />" 
 	  + genPlaylistString();

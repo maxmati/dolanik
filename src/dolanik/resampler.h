@@ -19,12 +19,17 @@
 
 #pragma once
 
+#include <vector>
+
 #define __STDC_CONSTANT_MACROS
 extern "C"
 {
   #include <libavutil/opt.h>
   #include <libavutil/channel_layout.h>
   #include <libavutil/samplefmt.h>
+  #include <libavfilter/avfiltergraph.h>
+  #include <libavfilter/buffersink.h>
+  #include <libavfilter/buffersrc.h>
   #include <libswresample/swresample.h>
 }
 #undef __STDC_CONSTANT_MACROS
@@ -32,13 +37,37 @@ extern "C"
 class Resampler
 {
 public:
-  Resampler(int64_t dstChannelLayout, uint dstRate, AVSampleFormat dstSampleFmt);
+  Resampler(int64_t dstChannelLayout, uint dstRate, AVSampleFormat dstSampleFmt);//FIXME: support only mono as output
   void setInputFormat(int64_t srcChannelLayout, uint srcRate, AVSampleFormat srcSampleFmt);
+  void setVolume(float volume);
   int calculateDstSamplesNumber(int srcSamplesNumber);
   int resample( const char** srcData, int srcSamples, char* dstData, int dstSamples );
   ~Resampler();
 private:
-  uint dstRate;
-  int srcRate;
-  SwrContext *swrCtx;
+  int initFilterGraph();
+  
+  AVFilterGraph* graph;
+  AVFilterContext* srcFilter;
+  AVFilterContext* volumeFilter;
+  AVFilterContext* formatFilter;
+  AVFilterContext* sinkFilter;
+  
+  float volume;
+  
+  const uint dstRate;
+  const AVSampleFormat dstFormat;
+  const int64_t dstChannelLayout; 
+  const uint dstChannelNb;
+  
+  uint srcRate;
+  AVSampleFormat srcFormat;
+  int64_t srcChannelLayout;
+  uint srcChannelsNb;
+  
+  uint currentFrameId;
+  
+  const uint FRAME_SIZE;
+  std::vector<std::vector<char>> inputBuffer;
+  std::vector<char> outputBuffer;
+  
 };

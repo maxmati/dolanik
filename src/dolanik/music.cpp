@@ -78,10 +78,9 @@ std::chrono::microseconds Music::send ( const char** pcm, uint nbSamples )
 				pcmBuffer.pop();
 				memcpy(buffer+i*sampleSize, frame.get(), sizeof(char)*sampleSize);
 			}
-			mc->getAudio()->encodeAudioFrame(reinterpret_cast<const short int*>(buffer), false);
+			mc->getAudio()->enqueue(reinterpret_cast<const short int*>(buffer), 480);
 			delete[] buffer;
 		}
-		return std::chrono::milliseconds(60);
 	}
 	return std::chrono::microseconds(0);
 }

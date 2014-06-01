@@ -491,11 +491,16 @@ void MumbleClient::Connect(const Settings& s) {
     SendMessage(PbMessageType::Authenticate, a, true);
 
     boost::asio::async_read(*tcp_socket_, recv_buffer_, boost::asio::transfer_at_least(6), boost::bind(&MumbleClient::ReadHandler, this, boost::asio::placeholders::error));
+
+    audio_->run();
 }
 
 void MumbleClient::Disconnect() {
   if (state_ == kStateNew)
     return;
+
+  audio_->stop();
+
   if (ping_timer_)
     ping_timer_->cancel();
   send_queue_.clear();

@@ -2,6 +2,8 @@
 #define _LIBMUMBLECLIENT_AUDIO_H
 
 #include <queue>
+#include <thread>
+#include <mutex>
 #include <boost/concept_check.hpp>
 
 #include "CELTCodec.hpp"
@@ -14,29 +16,27 @@ class MumbleClient;
 
 class Audio {
 public:
-	Audio(MumbleClient *mumbleClient);
-	
-	enum MessageType {
-		UDPVoiceCELTAlpha,
-		UDPPing,
-		UDPVoiceSpeex,
-		UDPVoiceCELTBeta,
-		UDPVoiceOpus
-	};
+  Audio(MumbleClient *mumbleClient);
 
-	void encodeAudioFrame(const short *pcm, bool forceFlush);
-	bool selectCodec(int alpha, int beta, bool preferAlpha);
-	void setMaxBandwidth(unsigned bitrate, unsigned frames);
+  enum MessageType {
+    UDPVoiceCELTAlpha,
+    UDPPing,
+    UDPVoiceSpeex,
+    UDPVoiceCELTBeta,
+    UDPVoiceOpus
+  };
 
-	//tymczasowo
-	CELTCodec *getCeltCodec() const { return celtCodec; };
-	CELTEncoder *getCeltEncoder() const { return celtEncoder; };
-	MessageType getMessageType() const { return codecMsgType; };
-	
+  void run();
+  void stop();
+
+  void enqueue(const int16_t *pcm, size_t len);
+
+  bool selectCodec(int alpha, int beta, bool preferAlpha);
+  void setMaxBandwidth(unsigned bitrate, unsigned frames);
+
 protected:
 	int encodeCELTFrame(const short int *pcm, unsigned char *buffer);
 	// TODO: void encodeOpusFrame();
-	void flushCheck(const unsigned char buffer[], bool forceFlush);
 
 	MumbleClient *mumbleClient;
 
@@ -50,7 +50,18 @@ protected:
 	unsigned totalFrames;
 	unsigned queuedFrames;
 
-	std::queue<std::string> frameQueue; // do private
+  std::queue<std::vector<uint16_t>> pcmFrameQueue;
+  std::queue<std::vector<uint8_t>> compressedFrameQueue;
+
+private:
+  const size_t SAMPLES_IN_10MS = 480;
+
+  bool running;
+
+  std::mutex compressedFrameQueueMutex;
+  std::thread *queueThread;
+
+  void processQueue();
 };
 
 }

@@ -31,3 +31,6 @@ install_manifest.txt
 #Kdevelop
 build
 *.kdev4
+
+#spotify
+src/spotify/key.cpp

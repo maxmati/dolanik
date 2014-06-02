@@ -34,13 +34,12 @@ Resampler::Resampler( int64_t dstChannelLayout, uint dstRate, AVSampleFormat dst
   volume(0.2),
   dstRate(dstRate),
   dstFormat(dstSampleFmt),
-  dstChannelLayout(dstSampleFmt),
+  dstChannelLayout(dstChannelLayout),
   dstChannelNb(av_get_channel_layout_nb_channels(dstChannelLayout)),
   srcRate(0),
   srcFormat(AV_SAMPLE_FMT_NONE),
   srcChannelLayout(0),
   srcChannelsNb(0),
-  currentFrameId(0),
   FRAME_SIZE(1024)
 {
 
@@ -78,9 +77,11 @@ int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to
 {
   AVFilter        *abuffer;
   AVFilter        *volume;
+  AVFilter        *aresample;
   AVFilter        *aformat;
   AVFilter        *abuffersink;
   char ch_layout[64];
+  char options_str[1024];
   int err;
   
    avfilter_register_all();
@@ -135,6 +136,7 @@ int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to
    * dictionary. */
   AVDictionary *options_dict = NULL;
   av_dict_set(&options_dict, "volume", Anal::toStr(this->volume).c_str(), 0);
+  av_dict_set(&options_dict, "precision", "fixed", 0);
   err = avfilter_init_dict(volumeFilter, &options_dict);
   av_dict_free(&options_dict);
 
@@ -142,6 +144,7 @@ int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to
     std::cerr<<"Could not initialize the volume filter."<<std::endl;
     return err;
   }
+  
   /* Create the aformat filter;
    * it ensures that the output is of the format we want. */
   aformat = avfilter_get_by_name("aformat");
@@ -154,14 +157,14 @@ int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to
     std::cerr<<"Could not allocate the aformat instance."<<std::endl;
     return AVERROR(ENOMEM);
   }
-  
+
   /* A third way of passing the options is in a string of the form
    * key1=value1:key2=value2.... */
-  char options_str[1024];
+  
   av_get_channel_layout_string(ch_layout, sizeof(ch_layout), 0, dstChannelLayout);
   snprintf(options_str, sizeof(options_str),
-           "sample_fmts=%s:sample_rates=%d:channel_layouts=%x",
-           av_get_sample_fmt_name(dstFormat), dstRate,dstChannelLayout);
+           "sample_fmts=%s:sample_rates=%d:channel_layouts=%s",
+           av_get_sample_fmt_name(dstFormat), dstRate,ch_layout);
   err = avfilter_init_str(formatFilter, options_str);
 
   if (err < 0) {
@@ -253,7 +256,6 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
     frame->format = srcFormat;
     frame->channel_layout = srcChannelLayout;
     frame->nb_samples = FRAME_SIZE;
-    frame->pts = currentFrameId * FRAME_SIZE;
     err = av_frame_get_buffer(frame, 0);
     if (err < 0)
       return err;
@@ -297,7 +299,6 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
       return err;
     }
 
-    ++currentFrameId;
     consumedSamples += currentConsumedSamples;
     srcSamples -= currentConsumedSamples;
   }
@@ -332,16 +333,16 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
   
   av_frame_unref(frame);
   while (dstSamples > 0 && ((err = av_buffersink_get_frame(sinkFilter, frame)) >= 0)) {
-    if(dstSamples > FRAME_SIZE)
+    if(dstSamples >= frame->nb_samples)
     {
       memcpy(
         &(dstData[dstSampleSize*providedFrames]),
         frame->extended_data[0],
-        sizeof(char)*dstSampleSize*FRAME_SIZE
+        sizeof(char)*dstSampleSize*frame->nb_samples
       );
       
-      providedFrames += FRAME_SIZE; 
-      dstSamples -= FRAME_SIZE;
+      providedFrames += frame->nb_samples; 
+      dstSamples -= frame->nb_samples;
     } else {
       memcpy(
         &(dstData[dstSampleSize*providedFrames]),
@@ -349,11 +350,11 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
         sizeof(char)*dstSampleSize*dstSamples
       );
       
-      outputBuffer.resize(dstSampleSize * (FRAME_SIZE - dstSamples));
+      outputBuffer.resize(dstSampleSize * (frame->nb_samples - dstSamples));
       mempcpy(
         outputBuffer.data(),
         &(frame->extended_data[0][dstSampleSize*dstSamples]),
-        sizeof(char)*dstSampleSize * (FRAME_SIZE - dstSamples)
+        sizeof(char)*dstSampleSize * (frame->nb_samples - dstSamples)
       );
       providedFrames += dstSamples;
       dstSamples -= dstSamples;

@@ -49,6 +49,7 @@ private:
   AVFilterGraph* graph;
   AVFilterContext* srcFilter;
   AVFilterContext* volumeFilter;
+  AVFilterContext* resampleFilter;
   AVFilterContext* formatFilter;
   AVFilterContext* sinkFilter;
   
@@ -63,9 +64,7 @@ private:
   AVSampleFormat srcFormat;
   int64_t srcChannelLayout;
   uint srcChannelsNb;
-  
-  uint currentFrameId;
-  
+    
   const uint FRAME_SIZE;
   std::vector<std::vector<char>> inputBuffer;
   std::vector<char> outputBuffer;

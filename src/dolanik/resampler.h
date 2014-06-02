@@ -59,14 +59,22 @@ private:
   const AVSampleFormat dstFormat;
   const int64_t dstChannelLayout; 
   const uint dstChannelNb;
+  size_t dstSampleSize;
   
   uint srcRate;
   AVSampleFormat srcFormat;
   int64_t srcChannelLayout;
   uint srcChannelsNb;
+  bool srcIsPlanar;
+  size_t _srcSampleSize;//FIXME:rename
+  size_t srcSampleSize;//FIXME: rename
+  size_t srcPlanes;
     
   const uint FRAME_SIZE;
   std::vector<std::vector<char>> inputBuffer;
   std::vector<char> outputBuffer;
+    
+    
+    
   
 };

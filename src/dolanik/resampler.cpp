@@ -36,13 +36,17 @@ Resampler::Resampler( int64_t dstChannelLayout, uint dstRate, AVSampleFormat dst
   dstFormat(dstSampleFmt),
   dstChannelLayout(dstChannelLayout),
   dstChannelNb(av_get_channel_layout_nb_channels(dstChannelLayout)),
+  dstSampleSize(av_get_bytes_per_sample(dstFormat)),
   srcRate(0),
   srcFormat(AV_SAMPLE_FMT_NONE),
   srcChannelLayout(0),
   srcChannelsNb(0),
+  srcIsPlanar(false),
+  _srcSampleSize(0),
+  srcSampleSize(0),
+  srcPlanes(0),
   FRAME_SIZE(1024)
 {
-
 }
 Resampler::~Resampler()
 {
@@ -56,6 +60,10 @@ void Resampler::setInputFormat ( int64_t srcChannelLayout, uint srcRate, AVSampl
   this->srcFormat = srcSampleFmt;
   this->srcChannelLayout = srcChannelLayout;
   this->srcChannelsNb = av_get_channel_layout_nb_channels(srcChannelLayout);
+  this->srcIsPlanar = av_sample_fmt_is_planar(srcFormat);
+  this->_srcSampleSize = av_get_bytes_per_sample(srcFormat);
+  this->srcSampleSize = srcIsPlanar ?  _srcSampleSize : _srcSampleSize * srcChannelsNb;
+  this->srcPlanes = srcIsPlanar ? srcChannelsNb : 1;
   
   assert(initFilterGraph() >= 0);
   
@@ -77,7 +85,6 @@ int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to
 {
   AVFilter        *abuffer;
   AVFilter        *volume;
-  AVFilter        *aresample;
   AVFilter        *aformat;
   AVFilter        *abuffersink;
   char ch_layout[64];
@@ -222,8 +229,11 @@ void Resampler::setVolume ( float volume )
 
 int Resampler::calculateDstSamplesNumber ( int srcSamplesNumber )
 {
-  return av_rescale_rnd(inputBuffer.size() + srcSamplesNumber,
-                        srcRate,dstRate, AV_ROUND_UP) + outputBuffer.size();
+  //uint perFrameOutputSamples = av_rescale_rnd(FRAME_SIZE, srcRate,dstRate, AV_ROUND_UP);
+  uint realInputSamples = ((inputBuffer[0].size()/srcSampleSize + srcSamplesNumber)/FRAME_SIZE)*FRAME_SIZE;
+  uint outputSamples = av_rescale_rnd(realInputSamples,
+                                      srcRate,dstRate, AV_ROUND_UP);
+  return outputSamples + outputBuffer.size()/dstSampleSize;
 }
 
 
@@ -243,13 +253,7 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
 
   uint consumedSamples = 0;
   
-  bool isPlanar = av_sample_fmt_is_planar(srcFormat);
-  size_t dstSampleSize = av_get_bytes_per_sample(dstFormat);
-  size_t _sampleSize = av_get_bytes_per_sample(srcFormat);//FIXME: rename
-  size_t sampleSize = isPlanar ?  _sampleSize : _sampleSize * srcChannelsNb;//FIXME: rename
-  uint planes = isPlanar ? srcChannelsNb : 1;
-  
-  while(srcSamples + inputBuffer[0].size()/sampleSize >= FRAME_SIZE)
+  while(srcSamples + inputBuffer[0].size()/srcSampleSize >= FRAME_SIZE)
   {
     av_frame_unref(frame);
     frame->sample_rate = srcRate;
@@ -260,23 +264,23 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
     if (err < 0)
       return err;
     
-    uint inputBufferSamples = inputBuffer[0].size()/sampleSize;
+    uint inputBufferSamples = inputBuffer[0].size()/srcSampleSize;
     uint currentConsumedSamples = 0;
     
-    for(uint j = 0; j < planes; ++j)//2 is number of channels
+    for(uint j = 0; j < srcPlanes; ++j)//2 is number of channels
     {
       if(inputBufferSamples > 0)
       {
         memcpy(
           frame->extended_data[j],
           inputBuffer[j].data(),
-          sizeof(char)*sampleSize*inputBufferSamples
+          sizeof(char)*srcSampleSize*inputBufferSamples
         );
         
         memcpy(
-          &(frame->extended_data[j][sampleSize*inputBufferSamples]),
-          &(srcData[j][sampleSize*consumedSamples]),
-          sizeof(char)*sampleSize*(FRAME_SIZE - inputBufferSamples)
+          &(frame->extended_data[j][srcSampleSize*inputBufferSamples]),
+          &(srcData[j][srcSampleSize*consumedSamples]),
+          sizeof(char)*srcSampleSize*(FRAME_SIZE - inputBufferSamples)
         );
         
         inputBuffer[j].resize(0);
@@ -284,8 +288,8 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
       } else {
          memcpy(
            frame->extended_data[j],
-           &(srcData[j][sampleSize*consumedSamples]),
-           sizeof(char)*sampleSize*FRAME_SIZE
+           &(srcData[j][srcSampleSize*consumedSamples]),
+           sizeof(char)*srcSampleSize*FRAME_SIZE
          );
          
          currentConsumedSamples = FRAME_SIZE;
@@ -304,14 +308,14 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
   }
   if(srcSamples > 0)
   {
-    for(uint j = 0; j < planes; ++j)//2 is number of channels
+    for(uint j = 0; j < srcPlanes; ++j)//2 is number of channels
     {
       uint currentBufferSize = inputBuffer[j].size();
-      inputBuffer[j].resize(srcSamples * sampleSize + currentBufferSize);
+      inputBuffer[j].resize(srcSamples * srcSampleSize + currentBufferSize);
       memcpy(
         inputBuffer[j].data() + currentBufferSize,
-        &(srcData[j][sampleSize*consumedSamples]),
-        sizeof(char)*sampleSize*srcSamples  
+        &(srcData[j][srcSampleSize*consumedSamples]),
+        sizeof(char)*srcSampleSize*srcSamples  
       );
     }
   }

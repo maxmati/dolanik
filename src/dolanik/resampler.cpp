@@ -223,8 +223,15 @@ int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to
 
 void Resampler::setVolume ( float volume )
 {
+  std::cout<<"setVolume("<<Anal::toStr(volume)<<")"<<std::endl;
   this->volume = volume;
-  initFilterGraph();
+  int err = avfilter_process_command(volumeFilter,"volume",Anal::toStr(volume).c_str(), NULL, 0, 0);
+  if (err < 0)
+  {
+    char errorstr[1024];
+    av_strerror(err, errorstr, sizeof(errorstr));
+    std::cout<<"error changing volume "<<err<<" "<<errorstr<<std::endl;
+  }
 }
 
 int Resampler::calculateDstSamplesNumber ( int srcSamplesNumber )

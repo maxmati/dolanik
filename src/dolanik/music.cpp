@@ -81,7 +81,7 @@ std::chrono::microseconds Music::send ( const char** pcm, uint nbSamples )
 			mc->getAudio()->enqueue(reinterpret_cast<const short int*>(buffer), 480);
 			delete[] buffer;
 		}
-		return std::chrono::microseconds(60);
+		return std::chrono::milliseconds(58);
 	}
 	return std::chrono::microseconds(0);
 }
@@ -115,7 +115,7 @@ void Music::stop()
 }
 void Music::setVolume(double volume)
 {
-  volume = std::max(volume,0.0);
+  volume = std::max(volume,0.01);
   volume = std::min(volume,2.0);
   this->volume = volume;
   statusComment();
@@ -125,7 +125,7 @@ void Music::setVolume(double volume)
 void Music::adjustVolume(double delta)
 {
     volume += delta;
-    volume = std::max(volume,0.0);
+    volume = std::max(volume,0.01);
     volume = std::min(volume,2.0);
     statusComment();
     resampler.setVolume(volume);

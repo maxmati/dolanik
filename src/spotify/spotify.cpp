@@ -7,56 +7,15 @@
 #include <thread>
 #include <boost/bind.hpp>
 
-#include <dolanik/music.h>
+#include <cstdint>
+#include <cstdlib>
+#include <cassert>
 
-
+#include <boost/bind.hpp>
 
 #include <stdint.h>
 #include <stdlib.h>
-const uint8_t g_appkey[] = {
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x00, 0x00, 0x00, 0x00,
-0x00,
-};
-const size_t g_appkey_size = sizeof(g_appkey);
+
 
 static void metadata_updated(sp_session *sess)
 {
@@ -90,8 +49,8 @@ Spotify::Spotify(std::string username, std::string password):
   spconfig.api_version = SPOTIFY_API_VERSION;
   spconfig.cache_location = "tmp";//TODO
   spconfig.settings_location = "tmp";//TODO
-  spconfig.application_key = g_appkey;//TODO
-  spconfig.application_key_size = g_appkey_size;//TODO
+  spconfig.application_key = g_appkey;
+  spconfig.application_key_size = g_appkey_size;
   spconfig.user_agent = "maxmati-dolanik";
   spconfig.callbacks = &sessionCallbacks;
   
@@ -100,15 +59,11 @@ Spotify::Spotify(std::string username, std::string password):
     sp_error error;
     error = sp_session_create(&(this->spconfig), &(this->session));
     
-    if (error != SP_ERROR_OK) {
-      throw std::exception();
-    }
+    processError(error);
     
     error = sp_session_login(this->session, username.c_str(),
 			     password.c_str(), 0, NULL);
-    if (error != SP_ERROR_OK) {
-      throw std::exception();
-    }
+    processError(error);
   }
   
   boost::thread(boost::bind(&Spotify::run, this));
@@ -146,13 +101,39 @@ uint Spotify::getSampleSize ( sp_sampletype& type )
     assert(false);
 }
 
+void Spotify::processError ( sp_error& error )
+{
+  if(error == SP_ERROR_IS_LOADING) return;
+  if(error == SP_ERROR_OK) return;
+  if(error == SP_ERROR_BAD_USERNAME_OR_PASSWORD) 
+    throw new BadLoginPasswordException();
+  
+  throw new SpotifyException();
+}
+
 void Spotify::play ( SpotifySong::Ptr song, Dolanik::Music& music )
 {
   {
-    sp_error error;//FIXME: wait until loaded
-    boost::lock_guard<boost::mutex> apiLock(this->spotifyApiMutex);
-    error = sp_session_player_load(this->session,song->track);
-    error = sp_session_player_play(this->session, true);
+    sp_error error;
+    boost::unique_lock<boost::mutex> apiLock(this->spotifyApiMutex);
+    while((error = sp_session_player_load(this->session,song->track)) 
+            == SP_ERROR_IS_LOADING)
+    {
+      apiLock.unlock();
+      boost::unique_lock<boost::mutex> notifyLock(playbackNotifyMutex);
+      playbackNotifyCond.wait(notifyLock);
+      apiLock.lock();
+    }
+    processError(error);
+    while((error = sp_session_player_play(this->session, true)) 
+      == SP_ERROR_IS_LOADING)
+    {
+      apiLock.unlock();
+      boost::unique_lock<boost::mutex> notifyLock(playbackNotifyMutex);
+      playbackNotifyCond.wait(notifyLock);
+      apiLock.lock();
+    }
+    processError(error);
   }
   bool initialized = false;
   uint sampleSize;
@@ -187,18 +168,18 @@ void Spotify::play ( SpotifySong::Ptr song, Dolanik::Music& music )
         sampleSize = getSampleSize(framesBufferFormat.sample_type);
         initialized = true;
       }
-      if(framesBuffer.size() > 480)
+      if(framesBuffer.size() > 0)
       {
-        //FIXME
-        char* buffer = new char[480*sampleSize*framesBufferFormat.channels];//480 samples at 48khz gives 10ms
-        for(int i = 0; i < 480; ++i)
+        uint bufferSize = framesBuffer.size();
+        char* buffer = new char[bufferSize*sampleSize*framesBufferFormat.channels];
+        for(uint i = 0; i < bufferSize; ++i)
         {
           boost::shared_ptr<char> frame = framesBuffer.front();
           framesBuffer.pop();
           memcpy(buffer+i*sampleSize*framesBufferFormat.channels, frame.get(),
                  sizeof(char)*sampleSize*framesBufferFormat.channels);
         }
-        sleepTime = music.send((const char**)&buffer,480);
+        sleepTime = music.send((const char**)&buffer,bufferSize);
         delete[] buffer;
       } else {
         lock.unlock();
@@ -230,6 +211,13 @@ void Spotify::stop ( SpotifySong::Ptr song )
 
 }
 
+bool Spotify::cmpAudioFormat ( const sp_audioformat& format1, const sp_audioformat& format2 )
+{
+  return format1.channels == format2.channels 
+  && format1.sample_rate == format1.sample_rate 
+  && format1.sample_type == format2.sample_type;
+}
+
 void Spotify::endOfTrack(sp_session* sess)
 {
   std::cout<<"endOfTrack()"<<std::endl;
@@ -243,7 +231,7 @@ void Spotify::loggedIn(sp_session* sess, sp_error error)
   if(error == SP_ERROR_OK)
     this->isLoggedIn.store(true);
   else
-    throw std::exception();
+    processError(error);
 }
 void Spotify::loggedOut(sp_session* sess)
 {
@@ -261,6 +249,7 @@ void Spotify::metadataUpdated(sp_session* sess) //TODO: remove invalid and with 
       song->updateMetadata();
     }
   }
+  playbackNotifyCond.notify_all();
 }
 int Spotify::musicDelivery(sp_session* sess, const sp_audioformat* format, 
 			   const void* _frames, int numFrames)
@@ -271,19 +260,15 @@ int Spotify::musicDelivery(sp_session* sess, const sp_audioformat* format,
   if(framesBuffer.size() > 32768)
     return 0;
   
-  if(framesBuffer.empty())
+  if(framesBuffer.empty() && !cmpAudioFormat(framesBufferFormat, *format))
   {
     framesBufferFormat = *format;
     std::cout<<"musicDelivery() creating new framesBuffer format: channels="
       <<format->channels<<" rate="<<format->sample_rate
       <<" type="<<format->sample_type<<std::endl;
   }
-  else //FIXME
-  {
-    assert(framesBufferFormat.channels == format->channels);
-    assert(framesBufferFormat.sample_rate == format->sample_rate);
-    assert(framesBufferFormat.sample_type == format->sample_type);
-  }
+  else
+    assert(cmpAudioFormat(framesBufferFormat, *format));
   
   uint sampleSize = getSampleSize(framesBufferFormat.sample_type);
   
@@ -361,7 +346,7 @@ void Spotify::metadataUpdatedWrapper(sp_session* sess)
   return Spotify::instance->metadataUpdated(sess);
 }
 int Spotify::musicDeliveryWrapper(sp_session* sess, const sp_audioformat* format,
-				  const void* frames, int numFrames)
+                                  const void* frames, int numFrames)
 {
   return Spotify::instance->musicDelivery(sess, format, frames, numFrames);
 }
@@ -373,3 +358,5 @@ void Spotify::playTokenLostWrapper(sp_session* sess)
 {
   return Spotify::instance->playTokenLost(sess);
 }
+
+

@@ -10,6 +10,7 @@
 
 
 
+
 class SpotifySong;
 
 class Spotify {
@@ -22,9 +23,11 @@ public:
   void stop( SpotifySong::Ptr song );
   
   boost::mutex spotifyApiMutex;
+  
 protected:
 private:
-  
+  bool cmpAudioFormat(const sp_audioformat& format1, const sp_audioformat& format2);
+  void processError(sp_error& error);
   
   void loggedIn(sp_session* sess, sp_error error);
   void loggedOut(sp_session* sess);

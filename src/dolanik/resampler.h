@@ -45,11 +45,12 @@ public:
   ~Resampler();
 private:
   int initFilterGraph();
+    int flush();
+  
   
   AVFilterGraph* graph;
   AVFilterContext* srcFilter;
   AVFilterContext* volumeFilter;
-  AVFilterContext* resampleFilter;
   AVFilterContext* formatFilter;
   AVFilterContext* sinkFilter;
   
@@ -73,8 +74,5 @@ private:
   const uint FRAME_SIZE;
   std::vector<std::vector<char>> inputBuffer;
   std::vector<char> outputBuffer;
-    
-    
-    
   
 };

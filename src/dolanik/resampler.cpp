@@ -56,6 +56,8 @@ Resampler::~Resampler()
 }
 void Resampler::setInputFormat ( int64_t srcChannelLayout, uint srcRate, AVSampleFormat srcSampleFmt )
 {
+  flush();
+  
   this->srcRate = srcRate;
   this->srcFormat = srcSampleFmt;
   this->srcChannelLayout = srcChannelLayout;
@@ -67,7 +69,6 @@ void Resampler::setInputFormat ( int64_t srcChannelLayout, uint srcRate, AVSampl
   
   assert(initFilterGraph() >= 0);
   
-  //Clear inputBuffer FIXME: maybe flush?
   inputBuffer.resize(srcChannelsNb);
   for(uint i = 0; i < srcChannelsNb; ++i)
     inputBuffer[i].resize(0);
@@ -80,8 +81,53 @@ void Resampler::setInputFormat ( int64_t srcChannelLayout, uint srcRate, AVSampl
   
 }
 
+int Resampler::flush()
+{
+  int err;
+  if(inputBuffer.size() == 0 || inputBuffer[0].size() == 0)
+    return 0;
+  
+  uint inputBufferSamples = inputBuffer[0].size()/srcSampleSize;
+  
+  AVFrame *frame;
+  frame = av_frame_alloc();
+  frame->sample_rate = srcRate;
+  frame->format = srcFormat;
+  frame->channel_layout = srcChannelLayout;
+  frame->nb_samples = inputBufferSamples;
+  err = av_frame_get_buffer(frame, 0);
+  if (err < 0)
+    return err;
 
-int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to change parameters
+  for(uint j = 0; j < srcPlanes; ++j)//2 is number of channels
+  {
+    memcpy(
+      frame->extended_data[j],
+      inputBuffer[j].data(),
+      sizeof(char)*srcSampleSize*inputBufferSamples
+    );
+  }
+  err = av_buffersrc_add_frame(srcFilter, frame);
+  if (err < 0) {
+    av_frame_unref(frame);
+    std::cerr<<"Error submitting the frame to the filtergraph:"<<std::endl;
+    return err;
+  }
+  while ((err = av_buffersink_get_frame(sinkFilter, frame)) >= 0) 
+  {
+    uint outBufferSize = outputBuffer.size();
+    outputBuffer.resize(dstSampleSize * frame->nb_samples + outBufferSize);
+    mempcpy(
+      &(outputBuffer.data()[outBufferSize]),
+      frame->extended_data[0],
+      sizeof(char)*dstSampleSize * frame->nb_samples 
+    );
+    av_frame_unref(frame);
+  }
+  return 0;
+}
+
+int Resampler::initFilterGraph()
 {
   AVFilter        *abuffer;
   AVFilter        *volume;
@@ -91,9 +137,11 @@ int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to
   char options_str[1024];
   int err;
   
-   avfilter_register_all();
+  avfilter_register_all();
   
-
+  if(graph)
+    avfilter_graph_free(&graph);
+  
   graph = avfilter_graph_alloc();
   if (!graph) {
     std::cerr<<"Unable to create filter graph."<<std::endl;
@@ -219,8 +267,6 @@ int Resampler::initFilterGraph()//FIXME: posible memleak! use process command to
   return 0;
 }
 
-
-
 void Resampler::setVolume ( float volume )
 {
   std::cout<<"setVolume("<<Anal::toStr(volume)<<")"<<std::endl;
@@ -236,13 +282,11 @@ void Resampler::setVolume ( float volume )
 
 int Resampler::calculateDstSamplesNumber ( int srcSamplesNumber )
 {
-  //uint perFrameOutputSamples = av_rescale_rnd(FRAME_SIZE, srcRate,dstRate, AV_ROUND_UP);
   uint realInputSamples = ((inputBuffer[0].size()/srcSampleSize + srcSamplesNumber)/FRAME_SIZE)*FRAME_SIZE;
   uint outputSamples = av_rescale_rnd(realInputSamples,
-                                      srcRate,dstRate, AV_ROUND_UP);
+                                      dstRate,srcRate, AV_ROUND_UP);
   return outputSamples + outputBuffer.size()/dstSampleSize;
 }
-
 
 int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, int dstSamples )
 {
@@ -342,7 +386,7 @@ int Resampler::resample ( const char** srcData, int srcSamples, char* dstData, i
     outputBuffer.resize(0);
   }
   
-  av_frame_unref(frame);
+  //av_frame_unref(frame);
   while (dstSamples > 0 && ((err = av_buffersink_get_frame(sinkFilter, frame)) >= 0)) {
     if(dstSamples >= frame->nb_samples)
     {

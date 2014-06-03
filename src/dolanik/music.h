@@ -84,9 +84,7 @@ namespace Dolanik{
     const size_t sampleSize;
     
     Resampler resampler;
-    
-    std::queue<boost::shared_ptr<char>> pcmBuffer;
-    
+ 
   };
 
 }

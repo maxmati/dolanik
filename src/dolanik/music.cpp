@@ -55,35 +55,11 @@ std::chrono::microseconds Music::send ( const char** pcm, uint nbSamples )
 	uint nbSamplesAfterResample = resampler.resample(pcm, nbSamples,
 																									 data.get(), dstNbSamples);
 
-	for(uint i = 0; i< nbSamplesAfterResample; ++i)
-	{
-	  boost::shared_ptr<char> sample( new char[sampleSize]);
-	  memcpy(
-			sample.get(),
-			&(data[i*sampleSize]),
-			sizeof(char)*sampleSize
-	  );
-	  pcmBuffer.push(sample);
-	}
+  if(nbSamplesAfterResample > 0)
+    mc->getAudio()->enqueue(reinterpret_cast<const short int*>(data.get()),
+                            nbSamplesAfterResample);
 
-	if(pcmBuffer.size() > 480 * 6)//FIXME
-	{
-		for(int j = 0; j < 6; ++j)//encode 6 frames 10 ms each
-		{
-			//FIXME
-			char* buffer = new char[480*sampleSize];//480 samples 2 bytes each. 480 samples at 48khz gives 10ms
-			for(int i = 0; i < 480; ++i)
-			{
-				boost::shared_ptr<char> frame = pcmBuffer.front();
-				pcmBuffer.pop();
-				memcpy(buffer+i*sampleSize, frame.get(), sizeof(char)*sampleSize);
-			}
-			mc->getAudio()->enqueue(reinterpret_cast<const short int*>(buffer), 480);
-			delete[] buffer;
-		}
-		return std::chrono::milliseconds(58);
-	}
-	return std::chrono::microseconds(0);
+  return std::chrono::microseconds(nbSamplesAfterResample*1000*1000/sampleRate);
 }
 void Music::setInputFormat ( int64_t srcChannelLayout, uint srcRate, AVSampleFormat srcSampleFmt )
 {

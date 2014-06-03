@@ -24,39 +24,33 @@ void Audio::stop() {
 }
 
 void Audio::enqueue(const int16_t *pcm, size_t len) {
-  size_t processedSamples = 0;
+  const unsigned int REQ_SAMPLES = SAMPLES_IN_10MS * audioFrames; // FIXME: audioFrames is not thread safe
 
-  switch(codecMsgType) {
-    case MessageType::UDPVoiceCELTAlpha:
-    case MessageType::UDPVoiceCELTBeta:
-      while(processedSamples < len) {
-        uint8_t compressedBuffer[512];
-        int encoded;
+  pcmFrameQueue.insert(pcmFrameQueue.end(), pcm, pcm + len);
 
-        if(len - processedSamples < SAMPLES_IN_10MS) {
-            int16_t pcmBuffer[SAMPLES_IN_10MS];
+  if(pcmFrameQueue.size() >= REQ_SAMPLES) {
+    size_t offset = 0;
 
-            memcpy(pcmBuffer, pcm + processedSamples, len - processedSamples);
-            memset(pcmBuffer + len - processedSamples, 0, sizeof(pcmBuffer) - len - processedSamples);
+    while(offset < pcmFrameQueue.size() - (pcmFrameQueue.size() % REQ_SAMPLES)) {
+      std::vector<uint8_t> celtBuf(127);
 
-            encoded = encodeCELTFrame(pcmBuffer, compressedBuffer);
-
-            processedSamples += len - processedSamples;
-        } else {
-          encoded = encodeCELTFrame(pcm + processedSamples, compressedBuffer);
-
-          processedSamples += SAMPLES_IN_10MS;
-        }
-
-        compressedFrameQueueMutex.lock();
-        compressedFrameQueue.push(std::vector<uint8_t>(compressedBuffer, compressedBuffer + encoded));
-        compressedFrameQueueMutex.unlock();
+      int size = encodeCELTFrame(pcmFrameQueue.data() + offset, celtBuf.data());
+      if(size < 0) {
+        std::cerr << "Enqueue CELT compression failed!" << std::endl;
+        return;
       }
-      break;
-    case MessageType::UDPVoiceOpus:
-      break;
-    default:
-      std::cerr << "Unsupported codec type " << codecMsgType << std::endl;
+
+      celtBuf.resize(size);
+
+      compressedFrameQueueMutex.lock();
+      compressedFrameQueue.emplace(celtBuf);
+      compressedFrameQueueMutex.unlock();
+
+      offset += SAMPLES_IN_10MS;
+    }
+
+    std::move(pcmFrameQueue.begin() + offset, pcmFrameQueue.end(), pcmFrameQueue.begin());
+    pcmFrameQueue.resize(pcmFrameQueue.size() - offset);
   }
 }
 
@@ -71,38 +65,34 @@ void Audio::processQueue() {
       data[0] = static_cast<uint8_t>(flags);
       pds << totalFrames - audioFrames; // seq
 
-      if(codecMsgType == MessageType::UDPVoiceOpus) {
-        // TODO: Opus support
-      } else {
-        size_t readyFrames = std::min(static_cast<size_t>(audioFrames), compressedFrameQueue.size());
+      size_t readyFrames = std::min(static_cast<size_t>(audioFrames), compressedFrameQueue.size());
 
-        for(size_t frame = 0; frame < readyFrames; ++frame) {
-          const std::vector<uint8_t> &processedFrame = compressedFrameQueue.front();
+      for(size_t frame = 0; frame < readyFrames; ++frame) {
+        const std::vector<uint8_t> &processedFrame = compressedFrameQueue.front();
 
-          uint8_t head = static_cast<uint8_t>(processedFrame.size());
-          if(frame < readyFrames - 1)
-            head |= 0x80;
-          pds.append(head);
-          pds.append(reinterpret_cast<const char*>(processedFrame.data()), processedFrame.size());
+        uint8_t head = static_cast<uint8_t>(processedFrame.size());
+        if(frame < readyFrames - 1)
+          head |= 0x80;
+        pds.append(head);
+        pds.append(reinterpret_cast<const char*>(processedFrame.data()), processedFrame.size());
 
-          compressedFrameQueue.pop();
-        }
-        compressedFrameQueueMutex.unlock();
-
-        mumbleClient->SendUdpMessage(reinterpret_cast<const char *>(data), pds.size() + 1);
-
-        totalFrames += readyFrames;
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10 * readyFrames));
+        compressedFrameQueue.pop();
       }
+      compressedFrameQueueMutex.unlock();
+
+      mumbleClient->SendUdpMessage(reinterpret_cast<const char *>(data), pds.size() + 1);
+
+      totalFrames += readyFrames;
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(10 * readyFrames));
     } else {
       compressedFrameQueueMutex.unlock();
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
   }
 }
 
-int Audio::encodeCELTFrame(const short int *pcm, unsigned char *buffer) {
+int Audio::encodeCELTFrame(const int16_t *pcm, uint8_t *buf) {
   if(!celtCodec && !celtEncoder) {
     std::cerr << "Couldn\'t encode frame: CELT codec not available" << std::endl;
     return 0;
@@ -111,7 +101,7 @@ int Audio::encodeCELTFrame(const short int *pcm, unsigned char *buffer) {
   celtCodec->celt_encoder_ctl(celtEncoder, CELT_SET_PREDICTION(0));
   celtCodec->celt_encoder_ctl(celtEncoder, CELT_SET_BITRATE(audioBitrate));
 
-  return celtCodec->encode(celtEncoder, pcm, buffer, std::min(static_cast<int>(audioBitrate) / (8 * 100), 127));
+  return celtCodec->encode(celtEncoder, pcm, buf, std::min(static_cast<int>(audioBitrate) / (8 * 100), 127));
 }
 
 bool Audio::selectCodec(int alpha, int beta, bool preferAlpha) {

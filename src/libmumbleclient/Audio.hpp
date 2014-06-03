@@ -4,7 +4,6 @@
 #include <queue>
 #include <thread>
 #include <mutex>
-#include <boost/concept_check.hpp>
 
 #include "CELTCodec.hpp"
 #include "PacketDataStream.hpp"
@@ -35,22 +34,21 @@ public:
   void setMaxBandwidth(unsigned bitrate, unsigned frames);
 
 protected:
-	int encodeCELTFrame(const short int *pcm, unsigned char *buffer);
-	// TODO: void encodeOpusFrame();
+  int encodeCELTFrame(const int16_t *pcm, uint8_t *buf);
 
-	MumbleClient *mumbleClient;
+  MumbleClient *mumbleClient;
 
-	CELTCodec *celtCodec;
-	CELTEncoder *celtEncoder;
-	MessageType codecMsgType; // do private
+  CELTCodec *celtCodec;
+  CELTEncoder *celtEncoder;
+  MessageType codecMsgType; // do private
 
-	unsigned audioBitrate;
-	unsigned audioFrames;
-	
-	unsigned totalFrames;
-	unsigned queuedFrames;
+  unsigned audioBitrate;
+  unsigned audioFrames;
 
-  std::queue<std::vector<uint16_t>> pcmFrameQueue;
+  unsigned totalFrames;
+  unsigned queuedFrames;
+
+  std::vector<int16_t> pcmFrameQueue;
   std::queue<std::vector<uint8_t>> compressedFrameQueue;
 
 private:

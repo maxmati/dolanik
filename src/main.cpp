@@ -1,34 +1,45 @@
+#include <config.h>
+
 #include <iostream>
 #include <Ice/Ice.h>
-#include <spotify/spotify.h>
-#include "spotify/spotifySong.h"
+
+#ifdef USE_SPOTIFY
+  #include <spotify/spotify.h>
+  #include "spotify/spotifySong.h"
+#endif
+
 #include <ice/dolanI.h>
 
 #include <dolanik/dolanik.h>
 #include <dolanik/music.h>
 #include "dolanik/filePlayer.h"
 
+
+
 int main()
 {
 
 	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
 	dolan->init();
-	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "./Cert.pem");
+	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "./cert.pem");
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
-	Spotify spotify("maxmati", "xxx");
-	//FilePlayer filePlayer;
-  SpotifySong::Ptr sSong =
-  spotify.createSong("spotify:track:0Wif6GC74X6oWrGrPoru4K");
 	sleep(5);
-	//FileSong::Ptr ss = filePlayer.createSong("/home/maxmati/Downloads/da.mp3");
-	//music->play(ss);
+#ifdef USE_SPOTIFY
+  Spotify spotify("maxmati", "xxx");
+  SpotifySong::Ptr sSong =
+    spotify.createSong("spotify:track:7DFNE7NO0raLIUbgzY2rzm");
+  music->play( sSong );
+#endif
+    
+  FilePlayer filePlayer;
+	FileSong::Ptr ss = filePlayer.createSong("./sample.mp3");
+	music->play(ss);
 	//ss->play(music->mc);
-	sleep(1);
+	//sleep(1);
 	//ss->stop();
 
 
-	sleep(2);
-	music->play( sSong );
+	//sleep(2);
 	sleep(1000);
 	
 	

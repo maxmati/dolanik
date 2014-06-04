@@ -4,9 +4,17 @@ cmake_minimum_required (VERSION 2.6)
 SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
 
 
-set (libmumbleclient_VERSION_MAJOR 0)
-set (libmumbleclient_VERSION_MINOR 1)
+set (VERSION_MAJOR 0)
+set (VERSION_MINOR 1)
 
+option(USE_SPOTIFY 
+  "Use libspotify for playing music from spotify." OFF)
+
+configure_file (
+  "${PROJECT_SOURCE_DIR}/src/config.h.in"
+  "${PROJECT_BINARY_DIR}/config.h"
+)
+  
 set (CMAKE_BUILD_TYPE Debug Release)
 
 SET(CMAKE_CXX_FLAGS "-g -std=c++0x -Wall")
@@ -66,10 +74,17 @@ message (STATUS "ZeroCIce found!")
 message (STATUS "Libraries: " ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} )
 message (STATUS "")
 
-find_package (LibSpotify REQUIRED)
-message (STATUS "LibSpotify found!")
-message (STATUS "Include dirs: " ${LIBSPOTIFY_INCLUDE_DIR})
-message (STATUS "Libraries: " ${LIBSPOTIFY_LIBRARIES})
+if(USE_SPOTIFY)
+  message(STATUS "Compiling with spotify support")
+  
+  find_package (LibSpotify REQUIRED)
+  message (STATUS "LibSpotify found!")
+  message (STATUS "Include dirs: " ${LIBSPOTIFY_INCLUDE_DIR})
+  message (STATUS "Libraries: " ${LIBSPOTIFY_LIBRARIES})
+  
+  set(EXTRA_LIBRARIES ${EXTRA_LIBRARIES} ${LIBSPOTIFY_LIBRARY_DEBUG})
+  set(EXTRA_INCLUDE_DIR ${EXTRA_INCLUDE_DIR} ${LIBSPOTIFY_INCLUDE_DIR})
+endif(USE_SPOTIFY)
 
 
 set(LIBMUMBLE_BUILD_TYPE STATIC)
@@ -78,6 +93,11 @@ set(LIBMUMBLECLIENT_LIBRARIES dl pthread)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib) 
 
 add_subdirectory(src)
+
+if(USE_SPOTIFY)
+  set(EXTRA_SRC ${EXTRA_SRC} ${SPOTIFY_SRC})
+endif(USE_SPOTIFY)
+
 
 PROTOBUF_GENERATE_CPP(LIBMUMBLECLIENT_PROTO_SOURCES LIBMUMBLECLIENT_PROTO_HEADERS ${LIBMUMBLECLIENT_PROTO})
 GET_FILENAME_COMPONENT(LIBMUMBLECLIENT_PROTO_INCLUDE_DIR ${LIBMUMBLECLIENT_PROTO_HEADERS} PATH)
@@ -98,6 +118,7 @@ INCLUDE_DIRECTORIES(
   ${DOLANIK_ICE_INCLUDE_DIR}
   ${FFMPEG_INCLUDE_DIRS}
   ${AVFILTER_INCLUDE_DIRS}
+  ${EXTRA_INCLUDE_DIR}
 )
 
 add_library(
@@ -130,13 +151,14 @@ add_executable(
   dolanik
   ${dolanik_SRC} 
   ${DOLANIK_ICE_SOURCES}
+  ${EXTRA_SRC}
 )
 target_link_libraries(
   dolanik
   dolan
   ${ZeroCIceCore_LIBRARY} 
   ${ZeroCIceUtil_LIBRARY}
-  ${LIBSPOTIFY_LIBRARY_DEBUG} 
+  ${EXTRA_LIBRARIES} 
   ${FFMPEG_LIBRARIES}
   ${AVFILTER_LIBRARIES}
 )

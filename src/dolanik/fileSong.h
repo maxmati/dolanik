@@ -22,10 +22,13 @@
 #include <dolanik/song.h>
 #include <queue>
 
-class FilePlayer;
+
 class AVFormatContext;
 struct AVCodecContext;
-class FileSong : public Dolanik::Song
+namespace Dolanik {
+class FilePlayer;
+  
+class FileSong : public Song
 {
   friend class FilePlayer;
 public:
@@ -33,7 +36,7 @@ public:
   FileSong(FilePlayer& player);
   ~FileSong();
   virtual void stop();
-  virtual void play ( Dolanik::Music& music );
+  virtual void play ( Music& music );
   virtual int getDuration();
   virtual std::string getTitle();
   virtual std::string getAlbum();
@@ -49,3 +52,4 @@ private:
   std::string artist;
   int duration;
 };
+}

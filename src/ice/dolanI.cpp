@@ -1,7 +1,9 @@
 #include "dolanI.h"
+#include <spotify/spotify.h>
 #include <dolanik/dolanik.h>
 #include <dolanik/server.h>
 #include <dolanik/music.h>
+#include <dolanik/filePlayer.h>
 #include <libmumbleclient/Settings.hpp>
 
 ServerI::ServerI(Dolanik::Dolanik* dolan):
@@ -25,13 +27,10 @@ Dolan::ServersInfo ServerI::getServers(const Ice::Current& )
   return serversOut;
 }
 
-
 void ServerI::disconnect(Ice::Int id , const Ice::Current& )
 {
   this->dolan->disconnect(id);
 }
-
-
 
 Ice::Int ServerI::connect(const Dolan::ServerInfo& si, const Ice::Current& )
 {
@@ -43,19 +42,15 @@ MusicI::MusicI(Dolanik::Dolanik* dolan):
 dolan(dolan)
 {
 }
-void MusicI::play(Ice::Int id ,const Dolan::Song& song, const Ice::Current&)
-{
-	//this->dolan->getMusic(id)->play(song.path, song.title, song.album, 
-	//song.artist);
-}
+
 Dolan::Song MusicI::getCurrentSong(Ice::Int id ,const Ice::Current&)
 {
 	Dolanik::Song::Ptr song = this->dolan->getMusic(id)->getCurrentSong();
 	Dolan::Song tmp;
-	//tmp.path = song.path.native();//FIXME
 	tmp.title = song->getTitle();
 	tmp.album = song->getAlbum();
 	tmp.artist = song->getArtist();
+  tmp.time = song->getDuration();
 	return tmp;
 }
 void MusicI::stop(Ice::Int id ,const Ice::Current&)
@@ -91,3 +86,26 @@ void  MusicI::setVolume(Ice::Int id ,Ice::Double volume, const Ice::Current&)
 {
 	this->dolan->getMusic(id)->setVolume(volume);
 }
+
+#ifdef USE_SPOTIFY
+SpotifyPlayerI::SpotifyPlayerI ( Dolanik::Dolanik& dolan, Spotify& spotify )
+:dolan(dolan),
+spotify(spotify)
+{}
+void SpotifyPlayerI::play ( const std::string& uri, Ice::Int id, const Ice::Current& )
+{
+  Dolanik::Song::Ptr song = spotify.createSong(uri);
+  dolan.getMusic(id)->play(song);
+}
+#endif
+
+FilePlayerI::FilePlayerI ( Dolanik::Dolanik& dolan, Dolanik::FilePlayer& player )
+:dolan(dolan),
+player(player)
+{}
+void FilePlayerI::play ( const std::string& path, Ice::Int id, const Ice::Current& )
+{
+  Dolanik::Song::Ptr song = player.createSong(path);
+  dolan.getMusic(id)->play(song);
+}
+

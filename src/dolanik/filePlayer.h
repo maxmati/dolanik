@@ -34,11 +34,12 @@ extern "C"
 #include <libmumbleclient/Client.hpp>
 #include "fileSong.h"
 
+namespace Dolanik {
 class FilePlayer
 {
 public:
   FileSong::Ptr createSong( std::string path );
-  void play(FileSong& song, Dolanik::Music&);
+  void play(FileSong& song, Music&);
   FilePlayer();
   ~FilePlayer();
 private:
@@ -46,3 +47,4 @@ private:
   void initPacket(AVPacket *packet);
 
 };
+}

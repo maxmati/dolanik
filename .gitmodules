@@ -1,0 +1,3 @@
+[submodule "src/ice/slice"]
+	path = src/ice/slice
+	url = gitlab@gitlab.maxmati.pl:mumble/dolanik-slice.git

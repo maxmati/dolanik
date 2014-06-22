@@ -2,10 +2,10 @@
 module Dolan {
 	struct Song
 	{
-		string path;
 		string title;
 		string album;
 		string artist;
+		int time;
 	};
 	struct ServerInfo
 	{
@@ -18,7 +18,7 @@ module Dolan {
 	};
 	sequence<ServerInfo> ServersInfo;
 	interface Music {
-		void play(int serverId, Song s);
+//		void play(int serverId, Song s);
 		Song getCurrentSong(int serverId);
 		void stop(int serverId);
 		double adjustVolume(int serverId,double delta);
@@ -34,4 +34,10 @@ module Dolan {
 		ServersInfo getServers();
 		void disconnect(int id);
 	};
+ interface SpotifyPlayer {
+   void play(string uri, int id);
+ }; 
+ interface FilePlayer {
+   void play(string path, int id);
+ };
 };

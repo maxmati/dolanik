@@ -26,6 +26,7 @@
 
 #include <boost/thread.hpp>
 
+namespace Dolanik {
 static char *const get_error_text(const int error)
 {
   static char error_buffer[255];
@@ -177,4 +178,5 @@ int FilePlayer::decodeAudioFrame(FileSong& song,AVFrame* frame, int* finished)
     *finished = 0;
   av_free_packet(&inputPacket );
   return 0;
+}
 }

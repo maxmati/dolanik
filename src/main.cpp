@@ -31,8 +31,8 @@ int main()
   music->play( sSong );
 #endif
     
-  FilePlayer filePlayer;
-	FileSong::Ptr ss = filePlayer.createSong("./sample.mp3");
+  Dolanik::FilePlayer filePlayer;
+  Dolanik::FileSong::Ptr ss = filePlayer.createSong("./sample.mp3");
 	music->play(ss);
 	//ss->play(music->mc);
 	//sleep(1);
@@ -40,21 +40,27 @@ int main()
 
 
 	//sleep(2);
-	sleep(1000);
+	//sleep(1000);
 	
 	
 	//music->play("/home/maxmati/Downloads/da.mp3","a","n","c");
-	/*
+	
 	int status = 0;
 	Ice::CommunicatorPtr ic;
 	try {
 		ic = Ice::initialize();
 		Ice::ObjectAdapterPtr adapter =
 			ic->createObjectAdapterWithEndpoints("DolanAdapter", "default -p 10000");
-		Ice::ObjectPtr music = new MusicI(dolan.get());
-		adapter->add(music, ic->stringToIdentity("Music"));
-		Ice::ObjectPtr server = new ServerI(dolan.get());
-		adapter->add(server, ic->stringToIdentity("Server"));
+		Ice::ObjectPtr musicI = new MusicI(dolan.get());
+		adapter->add( musicI, ic->stringToIdentity("Music"));
+		Ice::ObjectPtr serverI = new ServerI(dolan.get());
+		adapter->add( serverI, ic->stringToIdentity("Server"));
+    Ice::ObjectPtr filePlayerI = new FilePlayerI(*(dolan.get()), filePlayer);
+    adapter->add( filePlayerI, ic->stringToIdentity("FilePlayer"));
+#ifdef USE_SPOTIFY
+    Ice::ObjectPtr spotifyPlayerI = new SpotifyPlayerI(*(dolan.get()),spotify);
+    adapter->add( spotifyPlayerI, ic->stringToIdentity("SpotifyPlayer"));
+#endif
 		adapter->activate();
 		ic->waitForShutdown();
 	} catch (const Ice::Exception& e) {
@@ -73,7 +79,7 @@ int main()
 		}
 	}
 
-	*/
+	
 	char a;
 	std::cin >> a;
 	std::cout << a;

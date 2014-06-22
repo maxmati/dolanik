@@ -27,7 +27,7 @@ extern "C"
 }
 #undef __STDC_CONSTANT_MACROS
 
-
+namespace Dolanik {
 FileSong::FileSong ( FilePlayer& player )
   :codecContext(NULL),
   formatContext(NULL),
@@ -47,7 +47,7 @@ void FileSong::stop()
   playback = false;
 }
 
-void FileSong::play ( Dolanik::Music& music )
+void FileSong::play ( Music& music )
 {
   playback = true;
   player.play(*this, music);
@@ -71,4 +71,5 @@ std::string FileSong::getAlbum()
 std::string FileSong::getArtist()
 {
   return artist;
+}
 }

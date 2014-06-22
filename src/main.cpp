@@ -26,24 +26,14 @@ int main()
 	sleep(5);
 #ifdef USE_SPOTIFY
   Spotify spotify("maxmati", "xxx");
-  SpotifySong::Ptr sSong =
-    spotify.createSong("spotify:track:7DFNE7NO0raLIUbgzY2rzm");
-  music->play( sSong );
+//   SpotifySong::Ptr sSong =
+//     spotify.createSong("spotify:track:7DFNE7NO0raLIUbgzY2rzm");
+//   music->play( sSong );
 #endif
-    
+//     
   Dolanik::FilePlayer filePlayer;
-  Dolanik::FileSong::Ptr ss = filePlayer.createSong("./sample.mp3");
-	music->play(ss);
-	//ss->play(music->mc);
-	//sleep(1);
-	//ss->stop();
-
-
-	//sleep(2);
-	//sleep(1000);
-	
-	
-	//music->play("/home/maxmati/Downloads/da.mp3","a","n","c");
+//   Dolanik::FileSong::Ptr ss = filePlayer.createSong("./sample.mp3");
+// 	music->play(ss);
 	
 	int status = 0;
 	Ice::CommunicatorPtr ic;

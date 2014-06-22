@@ -21,7 +21,7 @@ int main()
 
 	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
 	dolan->init();
-	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "./cert.pem");
+	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "/etc/dolanik/cert.pem");
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
 	sleep(5);
 #ifdef USE_SPOTIFY

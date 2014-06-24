@@ -49,11 +49,13 @@ uint Dolanik::connect(const std::string& host, const std::string& port,
 		      const std::string& username, const std::string& password,
 		      const std::string& certFile)
 {
-  uint id = nextId++;
+  std::string hashStr = host+port+username+password+certFile;
+  static std::hash<std::string> hashFunc;
+  uint hash = hashFunc(hashStr);
   boost::shared_ptr<Server> server(new Server(mumbleClientLib->NewClient()));
-  servers.insert(std::pair<uint, boost::shared_ptr<Server> > (id, server));
-  servers.at(id)->connect(host,port,username,password,certFile);
-  return id;
+  servers.insert(std::pair<uint, boost::shared_ptr<Server> > (hash, server));
+  servers.at(hash)->connect(host,port,username,password,certFile);
+  return hash;
 }
 
 

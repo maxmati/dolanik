@@ -1,11 +1,14 @@
 #include "spotify.h"
+
 #include "spotifySong.h"
-#include <cassert>
+#include "key.h"
+#include "exceptions.h"
+
+#include "../dolanik/music.h"
 
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include <boost/bind.hpp>
 
 #include <cstdint>
 #include <cstdlib>
@@ -13,9 +16,8 @@
 
 #include <boost/bind.hpp>
 
-#include <stdint.h>
-#include <stdlib.h>
-
+#include <libavutil/channel_layout.h>
+#include <libavutil/samplefmt.h>
 
 static void metadata_updated(sp_session *sess)
 {

@@ -47,7 +47,6 @@ private:
     
     MumbleClient::MumbleClientLib* mumbleClientLib; //TODO: remove singleton
     std::map<uint,boost::shared_ptr<Server>> servers;//TODO mutexs
-    uint nextId;
     bool running;
   };
 }

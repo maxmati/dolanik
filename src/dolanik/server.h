@@ -45,6 +45,7 @@ public:
     std::string getPort();
     std::string getUsername();
     std::string getPassword();
+    std::string getCertFile();
 private:
     boost::scoped_ptr<MumbleClient::MumbleClient> mumbleClient;
     boost::shared_ptr<Music> musicAPI;
@@ -52,6 +53,7 @@ private:
     std::string port;
     std::string username;
     std::string password;
+    std::string certFile;
 
 };
 }

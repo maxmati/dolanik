@@ -38,6 +38,11 @@ std::string Server::getUsername()
 {
   return this->username;
 }
+std::string Server::getCertFile()
+{
+  return this->certFile;
+}
+
 
   
 void Server::connect(const std::string& host, const std::string& port,
@@ -48,6 +53,7 @@ void Server::connect(const std::string& host, const std::string& port,
   this->port=port;
   this->username=username;
   this->password=password;
+  this->certFile=certFile;
   this->mumbleClient->Connect(MumbleClient::Settings(host,port,username,password,certFile));
 }
 

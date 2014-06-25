@@ -74,6 +74,13 @@ message (STATUS "ZeroCIce found!")
 message (STATUS "Libraries: " ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY} )
 message (STATUS "")
 
+# ZeroC Ice
+find_package (JsonCpp REQUIRED)
+message (STATUS "Jsoncpp found!")
+message (STATUS "Include dirs: " ${JSONCPP_INCLUDE_DIRS})
+message (STATUS "Libraries: " ${JSONCPP_LIBRARIES})
+message (STATUS "")
+
 if(USE_SPOTIFY)
   message(STATUS "Compiling with spotify support")
   
@@ -121,6 +128,7 @@ INCLUDE_DIRECTORIES(
   ${DOLANIK_ICE_INCLUDE_DIR}
   ${FFMPEG_INCLUDE_DIRS}
   ${AVFILTER_INCLUDE_DIRS}
+  ${JSONCPP_INCLUDE_DIRS}
   ${EXTRA_INCLUDE_DIR}
 )
 
@@ -164,6 +172,7 @@ target_link_libraries(
   ${EXTRA_LIBRARIES} 
   ${FFMPEG_LIBRARIES}
   ${AVFILTER_LIBRARIES}
+  ${JSONCPP_LIBRARIES}
 )
 
 INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/dolanik

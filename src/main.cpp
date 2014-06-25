@@ -13,15 +13,19 @@
 #include <dolanik/dolanik.h>
 #include <dolanik/music.h>
 #include "dolanik/filePlayer.h"
+#include "dolanik/state.h"
 
+
+#include <jsoncpp/json/json.h>
 
 
 int main()
 {
-
 	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
 	dolan->init();
-	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "/etc/dolanik/cert.pem");
+  State state(dolan,"/var/lib/dolanik/state");
+// 	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "/etc/dolanik/cert.pem");
+  uint id = 3914662929;
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
 	sleep(5);
 #ifdef USE_SPOTIFY
@@ -32,6 +36,7 @@ int main()
 #endif
 //     
   Dolanik::FilePlayer filePlayer;
+  state.save();
 //   Dolanik::FileSong::Ptr ss = filePlayer.createSong("./sample.mp3");
 // 	music->play(ss);
 	

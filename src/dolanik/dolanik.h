@@ -20,6 +20,7 @@
 #pragma once
 
 #include <map>
+#include <boost/shared_ptr.hpp>
 
 namespace MumbleClient {
 class MumbleClientLib;

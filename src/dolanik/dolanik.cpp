@@ -34,8 +34,7 @@ std::map< uint, boost::shared_ptr< Server > > Dolanik::getServers()
 
 
 Dolanik::Dolanik():
-mumbleClientLib(MumbleClient::MumbleClientLib::instance()),
-nextId(0)
+mumbleClientLib(MumbleClient::MumbleClientLib::instance())
 {
     mumbleClientLib->SetLogLevel(0);
 }

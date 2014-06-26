@@ -29,7 +29,7 @@ int main()
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
 	sleep(5);
 #ifdef USE_SPOTIFY
-  Spotify spotify("maxmati", "xxx");
+  Spotify spotify("maxmati", "xxx", "/etc/dolanik/spotify.key");
 //   SpotifySong::Ptr sSong =
 //     spotify.createSong("spotify:track:7DFNE7NO0raLIUbgzY2rzm");
 //   music->play( sSong );

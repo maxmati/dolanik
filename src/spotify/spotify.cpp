@@ -1,12 +1,12 @@
 #include "spotify.h"
 
 #include "spotifySong.h"
-#include "key.h"
 #include "exceptions.h"
 
 #include "../dolanik/music.h"
 
 #include <iostream>
+#include <fstream>
 #include <chrono>
 #include <thread>
 
@@ -19,6 +19,9 @@
 #include <libavutil/channel_layout.h>
 #include <libavutil/samplefmt.h>
 
+using std::ifstream;
+using std::ios;
+
 static void metadata_updated(sp_session *sess)
 {
   std::cout<<"metadata_updated()"<<std::endl;
@@ -30,7 +33,7 @@ static void play_token_lost(sp_session *sess)
 }
 
 Spotify* Spotify::instance = nullptr;
-Spotify::Spotify(std::string username, std::string password):
+Spotify::Spotify( std::string username, std::string password, const std::string& filename ):
   sessionCallbacks(),
   spconfig(),
   session(nullptr),
@@ -51,10 +54,10 @@ Spotify::Spotify(std::string username, std::string password):
   spconfig.api_version = SPOTIFY_API_VERSION;
   spconfig.cache_location = "tmp";//TODO
   spconfig.settings_location = "tmp";//TODO
-  spconfig.application_key = g_appkey;
-  spconfig.application_key_size = g_appkey_size;
   spconfig.user_agent = "maxmati-dolanik";
   spconfig.callbacks = &sessionCallbacks;
+  
+  loadKeyFromFile(filename);
   
   {
     boost::mutex::scoped_lock lock(this->spotifyApiMutex);
@@ -72,6 +75,22 @@ Spotify::Spotify(std::string username, std::string password):
 
   
 }
+
+void Spotify::loadKeyFromFile(const std::string& filename)
+{
+  ifstream file(filename, ios::in|ios::binary|ios::ate);
+  if(!file.is_open()) throw SpotifyKeyException();
+  
+  spconfig.application_key_size = file.tellg();
+  spotifyKey.reset(new char[spconfig.application_key_size]);
+  file.seekg(0, ios::beg);
+  
+  file.read(spotifyKey.get(), spconfig.application_key_size);
+  
+  spconfig.application_key = spotifyKey.get();
+}
+
+
 Spotify::~Spotify()
 {
   assert(this->instance != nullptr);

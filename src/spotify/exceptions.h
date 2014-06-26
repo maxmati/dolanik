@@ -35,3 +35,9 @@ class BadLoginPasswordException: public SpotifyException {
     :SpotifyException( "Bad spotify login or password." )
     {}
 };
+class SpotifyKeyException: public SpotifyException {
+  public:
+    SpotifyKeyException()
+    :SpotifyException( "There is problem with your spotify application keys" )
+    {}
+};

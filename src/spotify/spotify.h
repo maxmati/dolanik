@@ -15,7 +15,7 @@ class SpotifySong;
 
 class Spotify {
 public:
-  Spotify(std::string username, std::string password);
+  Spotify(std::string username, std::string password, const std::string& filename);
   ~Spotify();
   
   boost::shared_ptr<SpotifySong> createSong(std::string uri);
@@ -28,6 +28,7 @@ protected:
 private:
   bool cmpAudioFormat(const sp_audioformat& format1, const sp_audioformat& format2);
   void processError(sp_error& error);
+  void loadKeyFromFile( const std::string& filename );
   
   void loggedIn(sp_session* sess, sp_error error);
   void loggedOut(sp_session* sess);
@@ -50,6 +51,8 @@ private:
   uint getSampleSize(sp_sampletype& type);
   
   static Spotify* instance;
+  
+  std::unique_ptr<char []>spotifyKey;
   
   std::queue<boost::shared_ptr<char>> framesBuffer;
   sp_audioformat framesBufferFormat;

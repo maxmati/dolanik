@@ -177,3 +177,5 @@ target_link_libraries(
 
 INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/dolanik
   DESTINATION bin)
+INSTALL(FILES dist/etc/dolanik/config
+  DESTINATION etc/dolanik)

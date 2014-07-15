@@ -1,0 +1,4 @@
+spotifyUser=username
+spotifyPassword=password
+stateFile=/var/lib/dolanik/state
+spotifyKeyFile=/etc/dolanik/spotify.key

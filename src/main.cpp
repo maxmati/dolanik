@@ -14,6 +14,7 @@
 #include <dolanik/music.h>
 #include "dolanik/filePlayer.h"
 #include "dolanik/state.h"
+#include "dolanik/config.h"
 
 
 #include <jsoncpp/json/json.h>
@@ -21,18 +22,24 @@
 
 int main()
 {
+  Dolanik::Config* config = Dolanik::Config::getInstance();
+  config->parseConfig("/etc/dolanik/config");
 	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
 	dolan->init();
-  State state(dolan,"/var/lib/dolanik/state");
+  State state(dolan, config->getAsString("stateFile", "/var/lib/dolanik/state"));
 // 	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "/etc/dolanik/cert.pem");
   uint id = 3914662929;
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
 	sleep(5);
 #ifdef USE_SPOTIFY
-  Spotify spotify("maxmati", "xxx", "/etc/dolanik/spotify.key");
-//   SpotifySong::Ptr sSong =
-//     spotify.createSong("spotify:track:7DFNE7NO0raLIUbgzY2rzm");
-//   music->play( sSong );
+  Spotify spotify(
+    config->getAsString("spotifyUser"), 
+    config->getAsString("spotifyPassword"),
+    config->getAsString("spotifyKeyFile", "/etc/dolanik/spotify.key")
+  );
+  SpotifySong::Ptr sSong =
+    spotify.createSong("spotify:track:7DFNE7NO0raLIUbgzY2rzm");
+  music->play( sSong );
 #endif
 //     
   Dolanik::FilePlayer filePlayer;

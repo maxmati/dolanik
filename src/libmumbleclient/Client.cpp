@@ -156,12 +156,13 @@ void MumbleClient::ParseMessage(const MessageHeader& msg_header, void* buffer) {
     }
     case PbMessageType::CodecVersion: {
         MumbleProto::CodecVersion cv = ConstructProtobufObject<MumbleProto::CodecVersion>(buffer, msg_header.length(), true);
-	audio_->selectCodec(cv.alpha(), cv.beta(), cv.prefer_alpha());
+        audio_->selectCodec(cv.alpha(), cv.beta(), cv.prefer_alpha());
         break;
     }
     case PbMessageType::ServerSync: {
         MumbleProto::ServerSync ss = ConstructProtobufObject<MumbleProto::ServerSync>(buffer, msg_header.length(), true);
         state_ = kStateAuthenticated;
+        state_cv_.notify_one();
         session_ = ss.session();
 
         // Enqueue ping
@@ -169,6 +170,9 @@ void MumbleClient::ParseMessage(const MessageHeader& msg_header, void* buffer) {
 
         if (auth_callback_)
             auth_callback_();
+
+        audio_->run();
+
         break;
     }
     case PbMessageType::UDPTunnel: {
@@ -492,7 +496,8 @@ void MumbleClient::Connect(const Settings& s) {
 
     boost::asio::async_read(*tcp_socket_, recv_buffer_, boost::asio::transfer_at_least(6), boost::bind(&MumbleClient::ReadHandler, this, boost::asio::placeholders::error));
 
-    audio_->run();
+    boost::unique_lock<boost::mutex> state_lock(state_cv_mtx_);
+    state_cv_.wait(state_lock);
 }
 
 void MumbleClient::Disconnect() {

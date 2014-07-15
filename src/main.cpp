@@ -27,7 +27,6 @@ int main()
 // 	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "/etc/dolanik/cert.pem");
   uint id = 3914662929;
 	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
-	sleep(5);
 #ifdef USE_SPOTIFY
   Spotify spotify("maxmati", "xxx", "/etc/dolanik/spotify.key");
 //   SpotifySong::Ptr sSong =

@@ -9,6 +9,8 @@
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/system/error_code.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "Messages.hpp"
 #include <Mumble.pb.h>
@@ -103,6 +105,8 @@ private:
     CryptState* cs_;
     std::deque< boost::shared_ptr<Message> > send_queue_;
     State state_;
+    boost::condition_variable state_cv_;
+    boost::mutex state_cv_mtx_;
     boost::asio::deadline_timer* ping_timer_;
     int32_t session_;
     std::list< boost::shared_ptr<User> > user_list_;

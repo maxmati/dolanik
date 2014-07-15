@@ -67,7 +67,8 @@ void Resampler::setInputFormat ( int64_t srcChannelLayout, uint srcRate, AVSampl
   this->srcSampleSize = srcIsPlanar ?  _srcSampleSize : _srcSampleSize * srcChannelsNb;
   this->srcPlanes = srcIsPlanar ? srcChannelsNb : 1;
   
-  assert(initFilterGraph() >= 0);
+  int error = initFilterGraph();
+  assert( error >= 0);
   
   inputBuffer.resize(srcChannelsNb);
   for(uint i = 0; i < srcChannelsNb; ++i)

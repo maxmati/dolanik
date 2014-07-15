@@ -114,22 +114,22 @@ void MumbleClient::ParseMessage(const MessageHeader& msg_header, void* buffer) {
         break;
     }
     case PbMessageType::ChannelRemove: {
-        MumbleProto::ChannelRemove cr = ConstructProtobufObject<MumbleProto::ChannelRemove>(buffer, msg_header.length(), true);
+        MumbleProto::ChannelRemove cr = ConstructProtobufObject<MumbleProto::ChannelRemove>(buffer, msg_header.length(), false);
         HandleChannelRemove(cr);
         break;
     }
     case PbMessageType::ChannelState: {
-        MumbleProto::ChannelState cs = ConstructProtobufObject<MumbleProto::ChannelState>(buffer, msg_header.length(), true);
+        MumbleProto::ChannelState cs = ConstructProtobufObject<MumbleProto::ChannelState>(buffer, msg_header.length(), false);
         HandleChannelState(cs);
         break;
     }
     case PbMessageType::UserRemove: {
-        MumbleProto::UserRemove ur = ConstructProtobufObject<MumbleProto::UserRemove>(buffer, msg_header.length(), true);
+        MumbleProto::UserRemove ur = ConstructProtobufObject<MumbleProto::UserRemove>(buffer, msg_header.length(), false);
         HandleUserRemove(ur);
         break;
     }
     case PbMessageType::UserState: {
-        MumbleProto::UserState us = ConstructProtobufObject<MumbleProto::UserState>(buffer, msg_header.length(), true);
+        MumbleProto::UserState us = ConstructProtobufObject<MumbleProto::UserState>(buffer, msg_header.length(), false);
         HandleUserState(us);
         break;
     }
@@ -141,7 +141,7 @@ void MumbleClient::ParseMessage(const MessageHeader& msg_header, void* buffer) {
         break;
     }
     case PbMessageType::CryptSetup: {
-        MumbleProto::CryptSetup cs = ConstructProtobufObject<MumbleProto::CryptSetup>(buffer, msg_header.length(), true);
+        MumbleProto::CryptSetup cs = ConstructProtobufObject<MumbleProto::CryptSetup>(buffer, msg_header.length(), false);
         if (cs.has_key() && cs.has_client_nonce() && cs.has_server_nonce()) {
             cs_->setKey(reinterpret_cast<const unsigned char *>(cs.key().data()), reinterpret_cast<const unsigned char *>(cs.client_nonce().data()), reinterpret_cast<const unsigned char *>(cs.server_nonce().data()));
         } else if (cs.has_server_nonce()) {
@@ -155,12 +155,12 @@ void MumbleClient::ParseMessage(const MessageHeader& msg_header, void* buffer) {
         break;
     }
     case PbMessageType::CodecVersion: {
-        MumbleProto::CodecVersion cv = ConstructProtobufObject<MumbleProto::CodecVersion>(buffer, msg_header.length(), true);
+        MumbleProto::CodecVersion cv = ConstructProtobufObject<MumbleProto::CodecVersion>(buffer, msg_header.length(), false);
         audio_->selectCodec(cv.alpha(), cv.beta(), cv.prefer_alpha());
         break;
     }
     case PbMessageType::ServerSync: {
-        MumbleProto::ServerSync ss = ConstructProtobufObject<MumbleProto::ServerSync>(buffer, msg_header.length(), true);
+        MumbleProto::ServerSync ss = ConstructProtobufObject<MumbleProto::ServerSync>(buffer, msg_header.length(), false);
         state_ = kStateAuthenticated;
         state_cv_.notify_one();
         session_ = ss.session();

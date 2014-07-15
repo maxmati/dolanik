@@ -49,7 +49,7 @@ void State::load ( const std::string& filename )
   ifstream file(filename);
   if( !this->reader.parse(file,this->root) )
   {
-    std::cout  << "Failed to parse last state: /n"
+    std::cout << "Failed to parse last state:" << std::endl
       << reader.getFormatedErrorMessages();
     return;
   }

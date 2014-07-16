@@ -34,3 +34,4 @@ build
 
 #spotify
 src/spotify/key.cpp
+tmp

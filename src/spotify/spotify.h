@@ -42,7 +42,7 @@ private:
   static void loggedOutWrapper(sp_session* sess);
   static void notifyMainThreadWrapper(sp_session* sess);
   static int musicDeliveryWrapper(sp_session* sess, const sp_audioformat* format,
-				  const void *frames, int numFrames);
+                                  const void *frames, int numFrames);
   static void endOfTrackWrapper(sp_session* sess);
   static void metadataUpdatedWrapper(sp_session* sess);
   static void playTokenLostWrapper(sp_session* sess);

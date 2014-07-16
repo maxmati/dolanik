@@ -46,8 +46,8 @@ std::string Server::getCertFile()
 
   
 void Server::connect(const std::string& host, const std::string& port,
-		     const std::string& username, const std::string& password,
-		     const std::string& certFile)
+                     const std::string& username, const std::string& password,
+                     const std::string& certFile)
 {
   this->host=host;
   this->port=port;

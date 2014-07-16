@@ -69,6 +69,7 @@ private:
   boost::mutex playbackNotifyMutex;
   boost::condition_variable playbackNotifyCond;
   bool playback;
+  bool endOfSong;
     
   boost::mutex songsMutex;
   std::list<boost::weak_ptr<SpotifySong>> songs;

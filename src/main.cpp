@@ -38,7 +38,7 @@ int main()
   );
   SpotifySong::Ptr sSong =
     spotify.createSong("spotify:track:7DFNE7NO0raLIUbgzY2rzm");
-  music->play( sSong );
+  //music->play( sSong );
 #endif
 //     
   Dolanik::FilePlayer filePlayer;
@@ -62,8 +62,8 @@ int main()
     Ice::ObjectPtr spotifyPlayerI = new SpotifyPlayerI(*(dolan.get()),spotify);
     adapter->add( spotifyPlayerI, ic->stringToIdentity("SpotifyPlayer"));
 #endif
-  adapter->activate();
-  ic->waitForShutdown();
+    adapter->activate();
+    ic->waitForShutdown();
   } catch (const Ice::Exception& e) {
     std::cerr << e << std::endl;
     status = 1;

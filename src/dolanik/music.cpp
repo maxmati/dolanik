@@ -48,7 +48,7 @@ Music::~Music()
 
 }
 
-std::chrono::microseconds Music::send ( const char** pcm, uint nbSamples )
+std::chrono::milliseconds Music::send ( const char** pcm, uint nbSamples )
 {
   uint dstNbSamples = resampler.calculateDstSamplesNumber(nbSamples);
   std::unique_ptr<char[]> data(new char[dstNbSamples*sampleSize]);
@@ -59,8 +59,9 @@ std::chrono::microseconds Music::send ( const char** pcm, uint nbSamples )
     mc->getAudio()->enqueue(reinterpret_cast<const short int*>(data.get()),
                             nbSamplesAfterResample);
 
-  return std::chrono::microseconds(nbSamplesAfterResample*1000*1000/sampleRate);
+  return std::chrono::milliseconds((nbSamplesAfterResample*1000)/sampleRate);
 }
+
 void Music::setInputFormat ( int64_t srcChannelLayout, uint srcRate, AVSampleFormat srcSampleFmt )
 {
   resampler.setInputFormat(srcChannelLayout,srcRate,srcSampleFmt);

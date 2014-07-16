@@ -161,7 +161,8 @@ void Spotify::play ( SpotifySong::Ptr song, Dolanik::Music& music )
   this->currentSong = song;
  
   playback = true;
-  while(playback)
+  endOfSong = false;
+  while(playback && (!endOfSong || framesBuffer.size() > 0) )
   {
     
     std::chrono::microseconds sleepTime(0);
@@ -235,7 +236,7 @@ void Spotify::stop ( SpotifySong::Ptr song )
 bool Spotify::cmpAudioFormat ( const sp_audioformat& format1, const sp_audioformat& format2 )
 {
   return format1.channels == format2.channels 
-  && format1.sample_rate == format1.sample_rate 
+  && format1.sample_rate == format2.sample_rate 
   && format1.sample_type == format2.sample_type;
 }
 
@@ -244,6 +245,7 @@ void Spotify::endOfTrack(sp_session* sess)
   std::cout<<"endOfTrack()"<<std::endl;
   assert(session == sess);
   sp_session_player_unload(session);
+  endOfSong = true;
 }
 void Spotify::loggedIn(sp_session* sess, sp_error error)
 {

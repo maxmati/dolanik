@@ -165,9 +165,6 @@ void MumbleClient::ParseMessage(const MessageHeader& msg_header, void* buffer) {
         state_cv_.notify_one();
         session_ = ss.session();
 
-        // Enqueue ping
-        DoPing(boost::system::error_code());
-
         if (auth_callback_)
             auth_callback_();
 
@@ -495,6 +492,9 @@ void MumbleClient::Connect(const Settings& s) {
     SendMessage(PbMessageType::Authenticate, a, true);
 
     boost::asio::async_read(*tcp_socket_, recv_buffer_, boost::asio::transfer_at_least(6), boost::bind(&MumbleClient::ReadHandler, this, boost::asio::placeholders::error));
+
+    // Enqueue ping
+    DoPing(boost::system::error_code());
 
     boost::unique_lock<boost::mutex> state_lock(state_cv_mtx_);
     state_cv_.wait(state_lock);

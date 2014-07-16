@@ -497,7 +497,7 @@ void MumbleClient::Connect(const Settings& s) {
     DoPing(boost::system::error_code());
 
     boost::unique_lock<boost::mutex> state_lock(state_cv_mtx_);
-    state_cv_.wait(state_lock);
+    state_cv_.wait(state_lock, [&]{ return state_ == kStateAuthenticated; });
 }
 
 void MumbleClient::Disconnect() {

@@ -50,10 +50,10 @@ Music::~Music()
 
 std::chrono::microseconds Music::send ( const char** pcm, uint nbSamples )
 {
-	uint dstNbSamples = resampler.calculateDstSamplesNumber(nbSamples);
-	std::unique_ptr<char[]> data(new char[dstNbSamples*sampleSize]);
-	uint nbSamplesAfterResample = resampler.resample(pcm, nbSamples,
-																									 data.get(), dstNbSamples);
+  uint dstNbSamples = resampler.calculateDstSamplesNumber(nbSamples);
+  std::unique_ptr<char[]> data(new char[dstNbSamples*sampleSize]);
+  uint nbSamplesAfterResample = resampler.resample(pcm, nbSamples,
+                                                   data.get(), dstNbSamples);
 
   if(nbSamplesAfterResample > 0)
     mc->getAudio()->enqueue(reinterpret_cast<const short int*>(data.get()),
@@ -185,7 +185,7 @@ void Music::onTxtMsg(const std::string& text)
         msg += "Current volume = " + strs.str() + "%<br />";
         if(playback)
             msg += "I'm currently playing song : "+ currentSong->getTitle() 
-		+ "(Length:" /*"+ Anal::toStr(getCurrentSongLength()) +" */ "s ) <br />"; //FIXME
+              + "(Length:" /*"+ Anal::toStr(getCurrentSongLength()) +" */ "s ) <br />"; //FIXME
         mc->SendTextMessage("music",msg);
     } else if(text == "playlist")
     {
@@ -228,11 +228,11 @@ void Music::statusComment()
     msg += "Current volume = " + strs.str() + "<br />";
     if(playback && currentSong)
         msg += "I'm currently playing song : <br />"
-	    + currentSong->getTitle() +" : " + currentSong->getArtist()
-	    + "(Length: "+ Anal::toStr(currentSong->getDuration()) +"s ) <br />";
+          + currentSong->getTitle() +" : " + currentSong->getArtist()
+          + "(Length: "+ Anal::toStr(currentSong->getDuration()) +"s ) <br />";
     if(!queue.empty())
       msg += "Playlist: <br />" 
-	  + genPlaylistString();
+          + genPlaylistString();
     mc->SetComment(msg);
 }
 
@@ -244,21 +244,21 @@ void Music::run()
     {
       if(!replayCurrentSongFlag)
       {
-	boost::mutex::scoped_lock lock(songsMutex);
-	currentSong = queue.front();
-	queue.pop_front();
+        boost::mutex::scoped_lock lock(songsMutex);
+        currentSong = queue.front();
+        queue.pop_front();
       }else
-	replayCurrentSongFlag = false;
+        replayCurrentSongFlag = false;
       
       statusComment();
       if(currentSong)
       {
-	currentSong->play(*this);
-	{
-	  boost::mutex::scoped_lock lock(songsMutex);
-	  history.push_back(currentSong);
-	  currentSong.reset();
-	}
+        currentSong->play(*this);
+        {
+          boost::mutex::scoped_lock lock(songsMutex);
+          history.push_back(currentSong);
+          currentSong.reset();
+        }
       }
       statusComment();
     }

@@ -24,12 +24,12 @@ int main()
 {
   Dolanik::Config* config = Dolanik::Config::getInstance();
   config->parseConfig("/etc/dolanik/config");
-	boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
-	dolan->init();
+  boost::shared_ptr<Dolanik::Dolanik> dolan(new Dolanik::Dolanik);
+  dolan->init();
   State state(dolan, config->getAsString("stateFile", "/var/lib/dolanik/state"));
 // 	uint id = dolan->connect("mumble.maxmati.pl", "64738", "dolanik", "", "/etc/dolanik/cert.pem");
   uint id = 3914662929;
-	boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
+  boost::shared_ptr<Dolanik::Music> music = dolan->getMusic(id);
 #ifdef USE_SPOTIFY
   Spotify spotify(
     config->getAsString("spotifyUser"), 
@@ -45,44 +45,43 @@ int main()
   state.save();
 //   Dolanik::FileSong::Ptr ss = filePlayer.createSong("./sample.mp3");
 // 	music->play(ss);
-	
-	int status = 0;
-	Ice::CommunicatorPtr ic;
-	try {
-		ic = Ice::initialize();
-		Ice::ObjectAdapterPtr adapter =
-			ic->createObjectAdapterWithEndpoints("DolanAdapter", "default -p 10000");
-		Ice::ObjectPtr musicI = new MusicI(dolan.get());
-		adapter->add( musicI, ic->stringToIdentity("Music"));
-		Ice::ObjectPtr serverI = new ServerI(dolan.get());
-		adapter->add( serverI, ic->stringToIdentity("Server"));
+
+  int status = 0;
+  Ice::CommunicatorPtr ic;
+  try {
+    ic = Ice::initialize();
+    Ice::ObjectAdapterPtr adapter =
+      ic->createObjectAdapterWithEndpoints("DolanAdapter", "default -p 10000");
+    Ice::ObjectPtr musicI = new MusicI(dolan.get());
+    adapter->add( musicI, ic->stringToIdentity("Music"));
+    Ice::ObjectPtr serverI = new ServerI(dolan.get());
+    adapter->add( serverI, ic->stringToIdentity("Server"));
     Ice::ObjectPtr filePlayerI = new FilePlayerI(*(dolan.get()), filePlayer);
     adapter->add( filePlayerI, ic->stringToIdentity("FilePlayer"));
 #ifdef USE_SPOTIFY
     Ice::ObjectPtr spotifyPlayerI = new SpotifyPlayerI(*(dolan.get()),spotify);
     adapter->add( spotifyPlayerI, ic->stringToIdentity("SpotifyPlayer"));
 #endif
-		adapter->activate();
-		ic->waitForShutdown();
-	} catch (const Ice::Exception& e) {
-		std::cerr << e << std::endl;
-		status = 1;
-	} catch (const char* msg) {
-		std::cerr << msg << std::endl;
-		status = 1;
-	}
-	if (ic) {
-		try {
-			ic->destroy();
-		} catch (const Ice::Exception& e) {
-			std::cerr << e << std::endl;
-			status = 1;
-		}
-	}
+  adapter->activate();
+  ic->waitForShutdown();
+  } catch (const Ice::Exception& e) {
+    std::cerr << e << std::endl;
+    status = 1;
+  } catch (const char* msg) {
+    std::cerr << msg << std::endl;
+    status = 1;
+  }
+  if (ic) {
+    try {
+      ic->destroy();
+    } catch (const Ice::Exception& e) {
+      std::cerr << e << std::endl;
+      status = 1;
+    }
+  }
 
-	
-	char a;
-	std::cin >> a;
-	std::cout << a;
-	return 0;
+  char a;
+  std::cin >> a;
+  std::cout << a;
+  return 0;
 }

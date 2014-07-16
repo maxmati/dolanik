@@ -67,7 +67,7 @@ Spotify::Spotify( std::string username, std::string password, const std::string&
     processError(error);
     
     error = sp_session_login(this->session, username.c_str(),
-			     password.c_str(), 0, NULL);
+                             password.c_str(), 0, NULL);
     processError(error);
   }
   

@@ -45,8 +45,8 @@ void Dolanik::disconnect(int id)
 }
 
 uint Dolanik::connect(const std::string& host, const std::string& port,
-		      const std::string& username, const std::string& password,
-		      const std::string& certFile)
+                      const std::string& username, const std::string& password,
+                      const std::string& certFile)
 {
   std::string hashStr = host+port+username+password+certFile;
   static std::hash<std::string> hashFunc;

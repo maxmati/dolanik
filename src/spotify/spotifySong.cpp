@@ -57,7 +57,7 @@ SpotifySong::~SpotifySong()
 
 int SpotifySong::getDuration()
 {
-  return this->duration;
+  return this->duration/1000;
 }
 
 std::string SpotifySong::getTitle()

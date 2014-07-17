@@ -156,7 +156,7 @@ void MumbleClient::ParseMessage(const MessageHeader& msg_header, void* buffer) {
     }
     case PbMessageType::CodecVersion: {
         MumbleProto::CodecVersion cv = ConstructProtobufObject<MumbleProto::CodecVersion>(buffer, msg_header.length(), false);
-        audio_->selectCodec(cv.alpha(), cv.beta(), cv.prefer_alpha());
+        audio_->selectCodec(cv.has_opus(), cv.alpha(), cv.beta(), cv.prefer_alpha());
         break;
     }
     case PbMessageType::ServerSync: {
@@ -488,6 +488,8 @@ void MumbleClient::Connect(const Settings& s) {
     
     for(std::pair<const int, CELTCodec*> codec : MumbleClientLib::instance()->getCodecMap())
 	    a.add_celt_versions(codec.second->getBitstreamVersion());
+
+    a.set_opus(true);
 
     SendMessage(PbMessageType::Authenticate, a, true);
 

@@ -54,7 +54,7 @@ namespace Dolanik{
     Song::Ptr getCurrentSong();///Thread safe
     
     void setInputFormat(int64_t srcChannelLayout, uint srcRate, AVSampleFormat srcSampleFmt);
-    std::chrono::milliseconds send( const char** pcm, uint nbSamples );
+    std::chrono::milliseconds send(const char** pcm, uint nbSamples);
     
     
     virtual void run();

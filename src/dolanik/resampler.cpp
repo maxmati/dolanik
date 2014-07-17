@@ -270,6 +270,8 @@ int Resampler::initFilterGraph()
 
 void Resampler::setVolume ( float volume )
 {
+  if(!volumeFilter)
+    return;
   std::cout<<"setVolume("<<Anal::toStr(volume)<<")"<<std::endl;
   this->volume = volume;
   int err = avfilter_process_command(volumeFilter,"volume",Anal::toStr(volume).c_str(), NULL, 0, 0);

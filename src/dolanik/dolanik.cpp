@@ -24,6 +24,8 @@
 
 #include "dolanik.h"
 #include "server.h"
+#include "config.h"
+#include "state.h"
 
 
 namespace Dolanik {
@@ -42,11 +44,13 @@ void Dolanik::disconnect(int id)
 {
   servers.at(id)->disconnect();
   servers.erase(id);
+  
+  state->save();
 }
 
 uint Dolanik::connect(const std::string& host, const std::string& port,
                       const std::string& username, const std::string& password,
-                      const std::string& certFile)
+                      const std::string& certFile, bool save)
 {
   std::string hashStr = host+port+username+password+certFile;
   static std::hash<std::string> hashFunc;
@@ -54,13 +58,20 @@ uint Dolanik::connect(const std::string& host, const std::string& port,
   boost::shared_ptr<Server> server(new Server(mumbleClientLib->NewClient()));
   servers.insert(std::pair<uint, boost::shared_ptr<Server> > (hash, server));
   servers.at(hash)->connect(host,port,username,password,certFile);
+  if(save)
+    state->save();
   return hash;
 }
 
 
 void Dolanik::init()
 {
-    boost::thread(boost::bind(&Dolanik::run,this));
+  boost::thread(boost::bind(&Dolanik::run,this));
+  state.reset(new State( 
+    this, 
+    Config::getInstance()->getAsString("stateFile", "/var/lib/dolanik/state" ) 
+  ) );
+  
 }
 
 

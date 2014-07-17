@@ -24,10 +24,12 @@
 #include <jsoncpp/json/json.h>
 #include "dolanik.h"
 
+namespace Dolanik{
+
 class State
 {
 public:
-  State(boost::shared_ptr<Dolanik::Dolanik> dolanik, const std::string& filename);
+  State(Dolanik* dolanik, const std::string& filename);
     ~State();
     void save();
 private:
@@ -36,6 +38,6 @@ private:
   std::string filename;
   Json::Reader reader;
   Json::Value root;
-  boost::shared_ptr<Dolanik::Dolanik> dolanik;
+  boost::shared_ptr<Dolanik> dolanik;
 };
-
+}

@@ -21,6 +21,7 @@
 
 #include <map>
 #include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace MumbleClient {
 class MumbleClientLib;
@@ -29,6 +30,7 @@ namespace Dolanik {
 
 class Music;
 class Server;
+class State;
 class Dolanik
 {
 public:
@@ -37,7 +39,7 @@ public:
     boost::shared_ptr< Music > getMusic(uint id);
     uint connect(const std::string& host, const std::string& port,
                  const std::string& username, const std::string& password,
-                 const std::string& certFile);
+                 const std::string& certFile, bool save = true);
     void disconnect(int id);
     virtual void run();
     virtual ~Dolanik();
@@ -48,5 +50,7 @@ private:
     MumbleClient::MumbleClientLib* mumbleClientLib; //TODO: remove singleton
     std::map<uint,boost::shared_ptr<Server>> servers;//TODO mutexs
     bool running;
+    
+    boost::scoped_ptr<State> state;
   };
 }

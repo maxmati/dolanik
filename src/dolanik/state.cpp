@@ -30,8 +30,8 @@ using std::make_pair;
 using std::ifstream;
 using std::ofstream;
 
-
-State::State( boost::shared_ptr< Dolanik::Dolanik > dolanik, const string& filename )
+namespace Dolanik {
+State::State(Dolanik* dolanik, const string& filename )
 :dolanik(dolanik)
 {
   this->load(filename);
@@ -61,14 +61,15 @@ void State::load ( const std::string& filename )
       servers[i].get("port","23768").asString(),
       servers[i].get("username","dolanik").asString(),
       servers[i].get("password","").asString(),
-      servers[i].get("certFile","/etc/dolanik/cert.pem").asString()
+      servers[i].get("certFile","/etc/dolanik/cert.pem").asString(),
+      false
     );
 }
 void State::save()
 {
   Json::Value servers(Json::arrayValue);
   servers.clear();
-  map<uint, boost::shared_ptr<Dolanik::Server>> curServers = this->dolanik->getServers();
+  map<uint, boost::shared_ptr<Server>> curServers = this->dolanik->getServers();
   for(auto it = curServers.begin(); it != curServers.end(); ++it)
   {
     Json::Value server(Json::objectValue);
@@ -86,5 +87,5 @@ void State::save()
   file<<this->root;
 
 }
-
+}
 

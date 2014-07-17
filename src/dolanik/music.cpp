@@ -154,8 +154,8 @@ std::string Music::genPlaylistString()
   for(uint i = 0;i< queue.size() ;++i)
   {
     boost::shared_ptr<Song> song = queue.at(i);
-    result += /*Anal::toStr(i+1) + */ ") " + song->getTitle() + " : " +
-      song->getArtist() + "<br />";//FIXME
+    result += Anal::toStr(i+1) +  ") " + song->getTitle() + " : " +
+      song->getArtist() + "<br />";
     
   }
   return result;

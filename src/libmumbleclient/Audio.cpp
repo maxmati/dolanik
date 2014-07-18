@@ -1,5 +1,8 @@
 #include "Audio.hpp"
 
+#include <chrono>
+
+#include "Logging.hpp"
 #include "ClientLib.hpp"
 #include "PacketDataStream.hpp"
 
@@ -31,7 +34,7 @@ int Audio::encodeOpusFrame(const int16_t *pcm, uint8_t *buf, size_t len) {
 
 int Audio::encodeCELTFrame(const int16_t *pcm, uint8_t *buf) {
   if(!celtCodec && !celtEncoder) {
-    std::cerr << "Couldn\'t encode frame: CELT codec not available" << std::endl;
+    LOG(ERROR) << "CELT encode failed: codec not available";
     return 0;
   }
 
@@ -66,7 +69,7 @@ std::chrono::milliseconds Audio::enqueue(const int16_t *pcm, size_t len) {
       }
 
       if(size < 0) {
-        std::cerr << "enqueue: compression failed!" << std::endl;
+        LOG(ERROR) << "Enqueue failed: encoder returned error";
         return std::chrono::milliseconds();
       }
 
@@ -82,8 +85,11 @@ std::chrono::milliseconds Audio::enqueue(const int16_t *pcm, size_t len) {
 
     queueCv.notify_one();
 
-    // returns enqueued data length in ms (minus 10ms for jitter safety)
-    return std::chrono::milliseconds((queueSize - 1) * 10);
+    if(codecMsgType == MessageType::UDPVoiceOpus)
+      queueSize *= audioFrames;
+
+    // returns enqueued data length + 2 frames (for jitter safety)
+    return std::chrono::milliseconds(std::max(static_cast<size_t>(0), queueSize * 10 - 2 * (10 * audioFrames)));
   }
   return std::chrono::milliseconds();
 }
@@ -110,7 +116,8 @@ bool Audio::selectCodec(bool opus, int alpha, int beta, bool preferAlpha) {
       celtCodec = nullptr;
     }
 
-    std::cerr << "Couldn\'t select codec! (requested bitstream: " << (preferAlpha ? alpha : beta) << ")" << std::endl;
+    LOG(ERROR) << "Audio: Codec selection failed";
+    LOG(INFO) << "(requested bitstream: " << (preferAlpha ? alpha : beta) << ")";;
     return false;
   }
 
@@ -145,9 +152,12 @@ void Audio::processQueue() {
     lock.lock();
 
     while(compressedQueue.size() == 0) {
-      std::cout << "processQueue: starving (queue is empty)!" << std::endl;
+      LOG(INFO) << "Audio: Queue processor going sleep";
       queueCv.wait(lock);
+      LOG(INFO) << "Audio: Queue processor woken up";
     }
+
+    auto start = std::chrono::steady_clock::now();
 
     if(compressedQueue.size() > 0) {
       uint8_t data[1024];
@@ -156,7 +166,6 @@ void Audio::processQueue() {
       size_t frames = 0;
 
       data[0] = static_cast<uint8_t>(flags);
-      std::cout << totalFrames;
       pds << totalFrames;
 
       if(codecMsgType == MessageType::UDPVoiceOpus) {
@@ -190,7 +199,7 @@ void Audio::processQueue() {
 
       totalFrames += frames;
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(10 * frames));
+      std::this_thread::sleep_until(start + std::chrono::milliseconds(10 * frames));
     }
   }
 }

@@ -81,6 +81,13 @@ message (STATUS "Include dirs: " ${JSONCPP_INCLUDE_DIRS})
 message (STATUS "Libraries: " ${JSONCPP_LIBRARIES})
 message (STATUS "")
 
+# Opus
+find_package (Opus REQUIRED)
+message (STATUS "Opus found!")
+message (STATUS "Include dirs: " ${OPUS_INCLUDE_DIRS})
+message (STATUS "Libraries: " ${OPUS_LIBRARIES})
+message (STATUS "")
+
 if(USE_SPOTIFY)
   message(STATUS "Compiling with spotify support")
   
@@ -129,6 +136,7 @@ INCLUDE_DIRECTORIES(
   ${FFMPEG_INCLUDE_DIRS}
   ${AVFILTER_INCLUDE_DIRS}
   ${JSONCPP_INCLUDE_DIRS}
+  ${OPUS_INCLUDE_DIRS}
   ${EXTRA_INCLUDE_DIR}
 )
 
@@ -173,7 +181,7 @@ target_link_libraries(
   ${FFMPEG_LIBRARIES}
   ${AVFILTER_LIBRARIES}
   ${JSONCPP_LIBRARIES}
-  opus
+  ${OPUS_LIBRARIES}
 )
 
 INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/dolanik

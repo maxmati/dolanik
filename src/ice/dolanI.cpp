@@ -1,5 +1,9 @@
 #include "dolanI.h"
-#include <spotify/spotify.h>
+
+#ifdef USE_SPOTIFY
+  #include <spotify/spotify.h>
+#endif
+
 #include <dolanik/dolanik.h>
 #include <dolanik/server.h>
 #include <dolanik/music.h>

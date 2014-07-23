@@ -22,16 +22,6 @@
 using std::ifstream;
 using std::ios;
 
-static void metadata_updated(sp_session *sess)
-{
-  std::cout<<"metadata_updated()"<<std::endl;
-}
-
-static void play_token_lost(sp_session *sess)
-{
-  std::cout<<"play_token_lost()"<<std::endl;
-}
-
 Spotify* Spotify::instance = nullptr;
 Spotify::Spotify( std::string username, std::string password, const std::string& filename ):
   sessionCallbacks(),
@@ -165,7 +155,7 @@ void Spotify::play ( SpotifySong::Ptr song, Dolanik::Music& music )
   while(playback && (!endOfSong || framesBuffer.size() > 0) )
   {
     
-    std::chrono::microseconds sleepTime(0);
+    std::chrono::milliseconds sleepTime(0);
     {
       boost::mutex::scoped_lock lock(framesBufferLock);
       if(framesBuffer.size() > 0 && !initialized)
@@ -335,7 +325,7 @@ void Spotify::run()
     else
 	this->notifyCond.timed_wait(
 	  lock,
-	  boost::posix_time::microseconds(nextTimeout)
+	  boost::posix_time::milliseconds(nextTimeout)
 	);
       
     this->notify = false;

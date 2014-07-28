@@ -17,6 +17,10 @@ Audio::Audio(MumbleClient *mumbleClient) :
     opus_encoder_ctl(opusEncoder, OPUS_SET_VBR(0));
 }
 
+Audio::~Audio() {
+  queueCv.notify_all();
+}
+
 void Audio::run() {
   running = true;
   queueThread = new std::thread(&Audio::processQueue, this);
@@ -24,7 +28,8 @@ void Audio::run() {
 
 void Audio::stop() {
   running = false;
-  queueThread->detach();
+  queueCv.notify_all();
+  queueThread->join();
   delete queueThread;
 }
 
@@ -148,10 +153,10 @@ void Audio::setMaxBandwidth(unsigned int bitrate, unsigned int frames) {
 void Audio::processQueue() {
   std::unique_lock<std::mutex> lock(queueMtx, std::defer_lock);
 
-  for(;;) {
+  while(running) {
     lock.lock();
 
-    while(compressedQueue.size() == 0) {
+    while(running && compressedQueue.size() == 0) {
       LOG(INFO) << "Audio: Queue processor going sleep";
       queueCv.wait(lock);
       LOG(INFO) << "Audio: Queue processor woken up";

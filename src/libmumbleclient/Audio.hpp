@@ -21,6 +21,7 @@ class MumbleClient;
 class Audio {
 public:
   Audio(MumbleClient *mumbleClient);
+  ~Audio();
 
   enum MessageType {
     UDPVoiceCELTAlpha,
@@ -66,7 +67,6 @@ private:
   std::mutex queueMtx;
 
   std::condition_variable queueCv;
-  //std::mutex queueCvMtx;
 
   void processQueue();
 };

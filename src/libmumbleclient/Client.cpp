@@ -404,6 +404,7 @@ void MumbleClient::ReadHandlerContinue(const MessageHeader msg_header, const boo
 // MumbleClient, public:
 
 MumbleClient::~MumbleClient() {
+    delete audio_;
     delete ping_timer_;
     delete tcp_socket_;
     delete udp_socket_;
